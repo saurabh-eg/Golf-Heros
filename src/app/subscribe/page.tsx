@@ -1,11 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { PlanCode } from "@/lib/billing/plans";
 
 export default function SubscribePage() {
+  const searchParams = useSearchParams();
+  const checkoutStatus = searchParams.get("checkout");
   const [loadingPlan, setLoadingPlan] = useState<PlanCode | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const isVerifyingAccess = checkoutStatus === "success" && !errorMessage;
+
+  useEffect(() => {
+    if (checkoutStatus !== "success") {
+      return;
+    }
+
+    let attempts = 0;
+    let cancelled = false;
+
+    const intervalId = window.setInterval(async () => {
+      attempts += 1;
+
+      try {
+        const response = await fetch("/api/subscription/status", { cache: "no-store" });
+        const payload = (await response.json()) as { hasAccess?: boolean };
+
+        if (!cancelled && response.ok && payload.hasAccess) {
+          window.clearInterval(intervalId);
+          window.location.href = "/dashboard";
+          return;
+        }
+      } catch {
+        // Ignore transient polling/network issues and keep retrying.
+      }
+
+      if (attempts >= 10 && !cancelled) {
+        window.clearInterval(intervalId);
+        setErrorMessage(
+          "Payment completed, but subscription sync is still processing. Refresh this page in a few seconds.",
+        );
+      }
+    }, 1500);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [checkoutStatus]);
 
   async function startCheckout(planCode: PlanCode) {
     setLoadingPlan(planCode);
@@ -34,6 +76,18 @@ export default function SubscribePage() {
       <p className="mt-3 text-slate-700">
         Select a plan to unlock score tracking, draw participation, and charity contributions.
       </p>
+
+      {checkoutStatus === "success" ? (
+        <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          Payment successful. {isVerifyingAccess ? "Activating your subscription and redirecting to dashboard..." : "Please wait..."}
+        </p>
+      ) : null}
+
+      {checkoutStatus === "cancel" ? (
+        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Checkout was canceled. You can select a plan and try again.
+        </p>
+      ) : null}
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         <button

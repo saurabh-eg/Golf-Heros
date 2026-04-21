@@ -61,6 +61,19 @@ export function AccountSettingsCard() {
     },
   });
 
+  const signOutMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      const payload = (await response.json()) as { ok?: boolean; error?: string };
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to sign out.");
+      }
+    },
+    onSuccess: () => {
+      window.location.href = "/auth/login";
+    },
+  });
+
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="font-display text-2xl text-slate-900">Account Settings</h2>
@@ -96,6 +109,21 @@ export function AccountSettingsCard() {
       {updateEmailMutation.isSuccess ? (
         <p className="mt-3 text-sm text-emerald-700">{updateEmailMutation.data}</p>
       ) : null}
+
+      <div className="mt-5 border-t border-slate-200 pt-4">
+        <p className="text-sm text-slate-600">Need to switch accounts on this device?</p>
+        <button
+          type="button"
+          onClick={() => signOutMutation.mutate()}
+          disabled={signOutMutation.isPending}
+          className="mt-3 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 hover:border-slate-900 hover:text-slate-900 disabled:opacity-70"
+        >
+          {signOutMutation.isPending ? "Signing out..." : "Sign Out"}
+        </button>
+        {signOutMutation.error ? (
+          <p className="mt-2 text-sm text-red-600">{(signOutMutation.error as Error).message}</p>
+        ) : null}
+      </div>
     </section>
   );
 }
