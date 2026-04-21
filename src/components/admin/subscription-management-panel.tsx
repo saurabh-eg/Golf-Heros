@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AnimatedCard } from "@/components/ui/animated-surface";
 
 type SubscriptionStatus =
   | "active"
@@ -103,8 +104,9 @@ export function SubscriptionManagementPanel() {
   }, [searchValue, subscriptionsQuery.data?.subscriptions]);
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="font-display text-2xl text-slate-900">Subscription Management</h2>
+    <AnimatedCard className="p-6">
+      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Billing ops</p>
+      <h2 className="mt-1 font-display text-2xl text-slate-950">Subscription Management</h2>
       <p className="mt-1 text-sm text-slate-600">Review lifecycle status and sync individual records from Stripe.</p>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -113,10 +115,10 @@ export function SubscriptionManagementPanel() {
             key={option}
             type="button"
             onClick={() => setStatusFilter(option)}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+            className={`rounded-full border px-3 py-1 text-xs font-semibold shadow-sm ${
               statusFilter === option
                 ? "border-slate-900 bg-slate-900 text-white"
-                : "border-slate-300 text-slate-700"
+                : "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:text-slate-950"
             }`}
           >
             {option} {option !== "all" ? `(${subscriptionsQuery.data?.summary?.[option] ?? 0})` : ""}
@@ -127,7 +129,7 @@ export function SubscriptionManagementPanel() {
       <input
         value={searchValue}
         onChange={(event) => setSearchValue(event.target.value)}
-        className="mt-4 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+        className="mt-4 w-full rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm shadow-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
         placeholder="Search by email, status, plan, or Stripe subscription id"
       />
 
@@ -139,7 +141,7 @@ export function SubscriptionManagementPanel() {
 
       <div className="mt-5 space-y-3">
         {filteredRows.map((row) => (
-          <article key={row.id} className="rounded-2xl border border-slate-200 p-4">
+          <article key={row.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-semibold text-slate-900">{row.users?.email ?? "Unknown user"}</p>
               <p className="text-xs font-semibold text-slate-700">{row.status}</p>
@@ -157,7 +159,7 @@ export function SubscriptionManagementPanel() {
                 type="button"
                 onClick={() => syncMutation.mutate(row.id)}
                 disabled={syncMutation.isPending}
-                className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700"
+                className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-400 hover:text-slate-950"
               >
                 {syncMutation.isPending ? "Syncing..." : "Sync from Stripe"}
               </button>
@@ -167,6 +169,6 @@ export function SubscriptionManagementPanel() {
 
         {!filteredRows.length ? <p className="text-sm text-slate-600">No subscriptions in this view.</p> : null}
       </div>
-    </section>
+    </AnimatedCard>
   );
 }

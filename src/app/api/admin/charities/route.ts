@@ -16,6 +16,12 @@ function isAdminRole(value: unknown): boolean {
   return value === "admin";
 }
 
+function isMissingOptionalTableError(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false;
+  if (error.code === "42P01") return true;
+  return /does not exist/i.test(error.message ?? "");
+}
+
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) {
@@ -28,10 +34,10 @@ export async function GET() {
   }
 
   const supabase = createSupabaseAdminClient();
-  const { data, error } = await supabase
+  const { data: charities, error } = await supabase
     .from("charities")
     .select(
-      "id,slug,name,short_description,long_description,website_url,is_featured,is_active,created_at,updated_at,charity_media(id,media_url,alt_text,caption,sort_order,is_active),charity_events(id,title,description,event_image_url,location,event_url,starts_at,ends_at,is_published)",
+      "id,slug,name,short_description,long_description,website_url,is_featured,is_active,created_at,updated_at",
     )
     .order("updated_at", { ascending: false });
 
@@ -39,7 +45,54 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ charities: data ?? [] });
+  const charityIds = (charities ?? []).map((charity) => charity.id);
+  if (charityIds.length === 0) {
+    return NextResponse.json({ charities: [] });
+  }
+
+  const [mediaResult, eventsResult] = await Promise.all([
+    supabase
+      .from("charity_media")
+      .select("id,charity_id,media_url,alt_text,caption,sort_order,is_active")
+      .in("charity_id", charityIds)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("charity_events")
+      .select("id,charity_id,title,description,event_image_url,location,event_url,starts_at,ends_at,is_published")
+      .in("charity_id", charityIds)
+      .order("starts_at", { ascending: false }),
+  ]);
+
+  if (mediaResult.error && !isMissingOptionalTableError(mediaResult.error)) {
+    return NextResponse.json({ error: mediaResult.error.message }, { status: 500 });
+  }
+
+  if (eventsResult.error && !isMissingOptionalTableError(eventsResult.error)) {
+    return NextResponse.json({ error: eventsResult.error.message }, { status: 500 });
+  }
+
+  const mediaByCharity = new Map<string, Array<(typeof mediaResult.data)[number]>>();
+  for (const media of mediaResult.data ?? []) {
+    const existing = mediaByCharity.get(media.charity_id) ?? [];
+    existing.push(media);
+    mediaByCharity.set(media.charity_id, existing);
+  }
+
+  const eventsByCharity = new Map<string, Array<(typeof eventsResult.data)[number]>>();
+  for (const event of eventsResult.data ?? []) {
+    const existing = eventsByCharity.get(event.charity_id) ?? [];
+    existing.push(event);
+    eventsByCharity.set(event.charity_id, existing);
+  }
+
+  const hydrated = (charities ?? []).map((charity) => ({
+    ...charity,
+    charity_media: mediaByCharity.get(charity.id) ?? [],
+    charity_events: eventsByCharity.get(charity.id) ?? [],
+  }));
+
+  return NextResponse.json({ charities: hydrated });
 }
 
 export async function POST(request: Request) {

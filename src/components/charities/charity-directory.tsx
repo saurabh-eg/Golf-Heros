@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { ArrowRight, HeartHandshake } from "lucide-react";
+import { AnimatedCard } from "@/components/ui/animated-surface";
 
 type Charity = {
   id: string;
@@ -76,13 +78,13 @@ export function CharityDirectory() {
   return (
     <section className="mt-8 space-y-4">
       {donationStatus === "success" ? (
-        <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-sm">
           Donation payment completed. Thank you for supporting this cause.
         </p>
       ) : null}
 
       {donationStatus === "cancel" ? (
-        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-sm">
           Donation checkout was canceled. You can try again anytime.
         </p>
       ) : null}
@@ -90,7 +92,7 @@ export function CharityDirectory() {
       <input
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm"
+        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm shadow-sm outline-none placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
         placeholder="Search charities"
       />
 
@@ -99,31 +101,33 @@ export function CharityDirectory() {
 
       <div className="grid gap-4 md:grid-cols-2">
         {filtered.map((charity) => (
-          <article key={charity.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <AnimatedCard key={charity.id} className="p-5">
             <div className="flex items-center justify-between gap-3">
               <h2 className="font-display text-2xl text-slate-900">{charity.name}</h2>
               {charity.is_featured ? (
-                <span className="rounded-full bg-warm px-2 py-0.5 text-xs font-semibold text-slate-700">Featured</span>
+                <span className="rounded-full bg-warm px-2 py-0.5 text-xs font-semibold text-slate-700 shadow-sm">Featured</span>
               ) : null}
             </div>
             <p className="mt-2 text-sm text-slate-700">{charity.short_description}</p>
             <Link
               href={`/charities/${charity.slug}`}
-              className="mt-4 inline-flex rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:border-slate-900 hover:text-slate-900"
+              className="mt-4 inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400 hover:text-slate-950"
             >
               View Profile
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
             <button
               type="button"
               onClick={() => setSelectedDonationCharityId(charity.id)}
-              className="mt-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:border-slate-900 hover:text-slate-900"
+              className="mt-2 inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400 hover:text-slate-950"
             >
+              <HeartHandshake className="mr-2 h-4 w-4" />
               Donate
             </button>
 
             {selectedDonationCharityId === charity.id ? (
               <form
-                className="mt-4 grid gap-2"
+                className="mt-4 grid gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4"
                 onSubmit={(event) => {
                   event.preventDefault();
                   donationMutation.mutate({
@@ -140,20 +144,20 @@ export function CharityDirectory() {
                   step={1}
                   value={donationAmount}
                   onChange={(event) => setDonationAmount(Number(event.target.value))}
-                  className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                   placeholder="Donation amount (USD)"
                 />
                 <input
                   type="email"
                   value={donorEmail}
                   onChange={(event) => setDonorEmail(event.target.value)}
-                  className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                   placeholder="Email (required for guest donation)"
                 />
                 <button
                   type="submit"
                   disabled={donationMutation.isPending}
-                  className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-70"
+                  className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white shadow-[0_14px_30px_-16px_rgba(16,32,58,0.8)] hover:bg-slate-800 disabled:opacity-70"
                 >
                   {donationMutation.isPending ? "Redirecting..." : "Continue to Checkout"}
                 </button>
@@ -165,11 +169,11 @@ export function CharityDirectory() {
             ) : null}
 
             {charity.website_url ? (
-              <a href={charity.website_url} target="_blank" rel="noreferrer" className="mt-4 inline-block text-sm font-semibold text-slate-900 underline">
+              <a href={charity.website_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center text-sm font-semibold text-slate-900 underline decoration-slate-400 underline-offset-4">
                 Visit website
               </a>
             ) : null}
-          </article>
+          </AnimatedCard>
         ))}
       </div>
     </section>

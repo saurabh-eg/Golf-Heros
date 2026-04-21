@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClientSupabaseClient } from "@/lib/supabase/client";
+import { AnimatedCard } from "@/components/ui/animated-surface";
 
 type WinnerRecord = {
   id: string;
@@ -114,9 +115,12 @@ export function WinnerVerificationCard() {
   });
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="font-display text-2xl text-slate-900">Winner Verification</h2>
-      <p className="mt-1 text-sm text-slate-600">Upload your proof document and track verification and payout status.</p>
+    <AnimatedCard className="p-6">
+      <div>
+        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Winnings</p>
+        <h2 className="mt-1 font-display text-2xl text-slate-950">Winner Verification</h2>
+        <p className="mt-1 text-sm text-slate-600">Upload your proof document and track verification and payout status.</p>
+      </div>
 
       {winnersQuery.isLoading ? <p className="mt-3 text-sm text-slate-600">Loading winner records...</p> : null}
       {winnersQuery.error ? <p className="mt-3 text-sm text-red-600">{(winnersQuery.error as Error).message}</p> : null}
@@ -128,12 +132,12 @@ export function WinnerVerificationCard() {
             const payout = winner.payouts?.[0];
 
             return (
-              <article key={winner.id} className="rounded-2xl border border-slate-200 p-4">
+              <article key={winner.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm font-semibold text-slate-900">
                     Tier {winner.tier} winner · {winner.winning_amount_minor} {winner.currency}
                   </p>
-                  <p className="text-xs text-slate-600">Verification: {verification?.status ?? "not submitted"}</p>
+                  <p className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">Verification: {verification?.status ?? "not submitted"}</p>
                 </div>
                 <p className="mt-1 text-xs text-slate-600">Payout: {payout?.status ?? "pending review"}</p>
 
@@ -148,7 +152,7 @@ export function WinnerVerificationCard() {
                         [winner.id]: file,
                       }));
                     }}
-                    className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="rounded-2xl border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                   />
                   <button
                     type="button"
@@ -159,7 +163,7 @@ export function WinnerVerificationCard() {
                         fallbackPath: verification?.proof_file_path ?? "",
                       })
                     }
-                    className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
+                    className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-[0_14px_28px_-16px_rgba(16,32,58,0.8)] hover:bg-slate-800"
                   >
                     Submit Proof
                   </button>
@@ -183,6 +187,6 @@ export function WinnerVerificationCard() {
           <p className="text-sm text-slate-600">No winner records yet.</p>
         )}
       </div>
-    </section>
+    </AnimatedCard>
   );
 }

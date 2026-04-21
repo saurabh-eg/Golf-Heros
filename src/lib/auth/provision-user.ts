@@ -1,7 +1,15 @@
 import type { User as SupabaseAuthUser } from "@supabase/supabase-js";
+import { serverEnv } from "@/lib/config/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 function resolveRole(user: SupabaseAuthUser): "subscriber" | "admin" {
+  const configuredAdminEmail = serverEnv.ADMIN_EMAIL?.trim().toLowerCase();
+  const userEmail = user.email?.trim().toLowerCase();
+
+  if (configuredAdminEmail && userEmail && configuredAdminEmail === userEmail) {
+    return "admin";
+  }
+
   const role = user.app_metadata?.role ?? user.user_metadata?.role;
   if (role === "admin") return "admin";
   return "subscriber";

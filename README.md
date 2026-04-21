@@ -19,6 +19,8 @@ npm install
 cp .env.example .env.local
 ```
 
+- Set `ADMIN_EMAIL` in `.env.local` to the email that should always get admin access after sign-in.
+
 3. Run the development server.
 
 ```bash

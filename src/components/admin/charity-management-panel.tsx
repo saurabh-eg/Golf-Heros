@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AnimatedCard } from "@/components/ui/animated-surface";
 
 type CharityMedia = {
   id: string;
@@ -304,8 +305,9 @@ export function CharityManagementPanel() {
   });
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="font-display text-2xl text-slate-900">Charity Management</h2>
+    <AnimatedCard className="p-6">
+      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Charity CMS</p>
+      <h2 className="mt-1 font-display text-2xl text-slate-950">Charity Management</h2>
       <p className="mt-1 text-sm text-slate-600">Create, edit, and deactivate charities without direct database access.</p>
 
       <form
@@ -766,6 +768,6 @@ export function CharityManagementPanel() {
 
         {!ordered.length ? <p className="text-sm text-slate-600">No charities available.</p> : null}
       </div>
-    </section>
+    </AnimatedCard>
   );
 }

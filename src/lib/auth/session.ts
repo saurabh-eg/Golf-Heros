@@ -16,17 +16,43 @@ type SubscriptionRow = {
   current_period_end: string | null;
 };
 
+async function resolveUserRoleWithFallback(userId: string, roleFromMetadata: "admin" | "subscriber" | null) {
+  if (roleFromMetadata) {
+    return roleFromMetadata;
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data } = await supabase.from("users").select("role").eq("id", userId).maybeSingle();
+  return toAppRole(data?.role);
+}
+
 export async function getCurrentUser() {
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (user) {
-    await ensurePublicUserRecord(user);
+  if (!user) {
+    return null;
   }
 
-  return user;
+  const metadataRole = toAppRole(user.app_metadata?.role ?? user.user_metadata?.role);
+  const resolvedRole = await resolveUserRoleWithFallback(user.id, metadataRole);
+
+  const userWithResolvedRole =
+    resolvedRole && resolvedRole !== metadataRole
+      ? {
+          ...user,
+          user_metadata: {
+            ...(user.user_metadata ?? {}),
+            role: resolvedRole,
+          },
+        }
+      : user;
+
+  await ensurePublicUserRecord(userWithResolvedRole);
+
+  return userWithResolvedRole;
 }
 
 export async function requireUser() {

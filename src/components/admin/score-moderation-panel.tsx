@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AnimatedCard } from "@/components/ui/animated-surface";
 
 type ScoreRow = {
   id: string;
@@ -83,14 +84,15 @@ export function ScoreModerationPanel() {
   const rows = useMemo(() => scoresQuery.data?.scores ?? [], [scoresQuery.data?.scores]);
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="font-display text-2xl text-slate-900">Score Moderation</h2>
+    <AnimatedCard className="p-6">
+      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Moderation</p>
+      <h2 className="mt-1 font-display text-2xl text-slate-950">Score Moderation</h2>
       <p className="mt-1 text-sm text-slate-600">Review, edit, and remove user scores with audit logging.</p>
 
       <input
         value={search}
         onChange={(event) => setSearch(event.target.value)}
-        className="mt-4 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+        className="mt-4 w-full rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm shadow-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
         placeholder="Search by user email, score date, or value"
       />
 
@@ -103,7 +105,7 @@ export function ScoreModerationPanel() {
         {rows.map((row) => {
           const isEditing = editingScoreId === row.id;
           return (
-            <article key={row.id} className="rounded-2xl border border-slate-200 p-4">
+            <article key={row.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm font-semibold text-slate-900">{resolveEmail(row)}</p>
                 <p className="text-xs text-slate-600">Updated: {prettyDate(row.updated_at)}</p>
@@ -115,7 +117,7 @@ export function ScoreModerationPanel() {
                     type="date"
                     value={editingDate}
                     onChange={(event) => setEditingDate(event.target.value)}
-                    className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                   />
                   <input
                     type="number"
@@ -123,7 +125,7 @@ export function ScoreModerationPanel() {
                     max={45}
                     value={editingValue}
                     onChange={(event) => setEditingValue(event.target.value)}
-                    className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                   />
                   <button
                     type="button"
@@ -134,14 +136,14 @@ export function ScoreModerationPanel() {
                         stablefordScore: Number(editingValue),
                       })
                     }
-                    className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
+                    className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-slate-800"
                   >
                     Save
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditingScoreId(null)}
-                    className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700"
+                    className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-400 hover:text-slate-950"
                   >
                     Cancel
                   </button>
@@ -162,14 +164,14 @@ export function ScoreModerationPanel() {
                       setEditingDate(row.score_date);
                       setEditingValue(String(row.stableford_score));
                     }}
-                    className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700"
+                    className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-400 hover:text-slate-950"
                   >
                     Edit
                   </button>
                   <button
                     type="button"
                     onClick={() => deleteMutation.mutate(row.id)}
-                    className="rounded-full border border-red-300 px-3 py-1 text-xs font-semibold text-red-700"
+                    className="rounded-full border border-red-300 bg-white px-3 py-1 text-xs font-semibold text-red-700 shadow-sm hover:border-red-400 hover:bg-red-50"
                   >
                     Delete
                   </button>
@@ -181,6 +183,6 @@ export function ScoreModerationPanel() {
 
         {!rows.length ? <p className="text-sm text-slate-600">No scores in this view.</p> : null}
       </div>
-    </section>
+    </AnimatedCard>
   );
 }

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { DrawMode } from "@/lib/domain/draw";
+import { AnimatedCard } from "@/components/ui/animated-surface";
 
 type DrawCurrentResponse = {
   draw: {
@@ -90,15 +91,16 @@ export function DrawControlPanel() {
   }, [currentQuery.error, publishMutation.error, simulateMutation.error]);
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="font-display text-2xl text-slate-900">Draw Operations</h2>
+    <AnimatedCard className="p-6">
+      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Draws</p>
+      <h2 className="mt-1 font-display text-2xl text-slate-950">Draw Operations</h2>
       <p className="mt-1 text-sm text-slate-600">Run simulation and publish official monthly draw results.</p>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <select
           value={mode}
           onChange={(event) => setMode(event.target.value as DrawMode)}
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+          className="rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm shadow-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
         >
           <option value="random">Random Mode</option>
           <option value="weighted">Weighted Mode</option>
@@ -108,7 +110,7 @@ export function DrawControlPanel() {
           type="button"
           onClick={() => simulateMutation.mutate()}
           disabled={simulateMutation.isPending || publishMutation.isPending}
-          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
+          className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:border-slate-400 hover:text-slate-950"
         >
           {simulateMutation.isPending ? "Simulating..." : "Run Simulation"}
         </button>
@@ -117,7 +119,7 @@ export function DrawControlPanel() {
           type="button"
           onClick={() => publishMutation.mutate()}
           disabled={simulateMutation.isPending || publishMutation.isPending}
-          className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+          className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
         >
           {publishMutation.isPending ? "Publishing..." : "Publish Official Draw"}
         </button>
@@ -126,8 +128,8 @@ export function DrawControlPanel() {
       {errorMessage ? <p className="mt-3 text-sm text-red-600">{errorMessage}</p> : null}
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 p-4">
-          <h3 className="text-sm font-semibold text-slate-900">Current Draw</h3>
+        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
+          <h3 className="text-sm font-semibold text-slate-950">Current Draw</h3>
           {currentQuery.isLoading ? <p className="mt-2 text-sm text-slate-600">Loading...</p> : null}
           {currentQuery.data?.draw ? (
             <div className="mt-2 space-y-1 text-sm text-slate-700">
@@ -143,8 +145,8 @@ export function DrawControlPanel() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-slate-200 p-4">
-          <h3 className="text-sm font-semibold text-slate-900">Prize Snapshot</h3>
+        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
+          <h3 className="text-sm font-semibold text-slate-950">Prize Snapshot</h3>
           {currentQuery.data?.prizePool ? (
             <div className="mt-2 space-y-1 text-sm text-slate-700">
               <p>Gross Pool: {currentQuery.data.prizePool.gross_pool_minor}</p>
@@ -158,6 +160,6 @@ export function DrawControlPanel() {
           )}
         </div>
       </div>
-    </section>
+    </AnimatedCard>
   );
 }

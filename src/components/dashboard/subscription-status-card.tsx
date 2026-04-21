@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { AnimatedCard } from "@/components/ui/animated-surface";
 
 type StatusResponse = {
   subscription: {
@@ -30,24 +31,35 @@ export function SubscriptionStatusCard() {
   });
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="font-display text-2xl text-slate-900">Subscription Status</h2>
-      {query.isLoading ? <p className="mt-2 text-sm text-slate-600">Loading subscription...</p> : null}
-      {query.error ? <p className="mt-2 text-sm text-red-600">{(query.error as Error).message}</p> : null}
+    <AnimatedCard className="p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Billing</p>
+          <h2 className="mt-1 font-display text-2xl text-slate-950">Subscription Status</h2>
+        </div>
+        <div className={`rounded-full px-3 py-1 text-xs font-semibold ${query.data?.hasAccess ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+          {query.data?.hasAccess ? "Active" : "Needs attention"}
+        </div>
+      </div>
+      {query.isLoading ? <p className="mt-3 text-sm text-slate-600">Loading subscription...</p> : null}
+      {query.error ? <p className="mt-3 text-sm text-red-600">{(query.error as Error).message}</p> : null}
 
       {query.data ? (
-        <div className="mt-3 space-y-2 text-sm text-slate-700">
-          <p>
-            Access: <span className="font-semibold text-slate-900">{query.data.hasAccess ? "Active" : "Inactive"}</span>
-          </p>
-          <p>
-            Plan: <span className="font-semibold text-slate-900">{query.data.subscription?.plan_code ?? "Not set"}</span>
-          </p>
-          <p>
-            Renewal: <span className="font-semibold text-slate-900">{query.data.subscription?.current_period_end ?? "N/A"}</span>
-          </p>
+        <div className="mt-4 grid gap-3 text-sm text-slate-700 sm:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Access</p>
+            <p className="mt-1 font-semibold text-slate-950">{query.data.hasAccess ? "Active" : "Inactive"}</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Plan</p>
+            <p className="mt-1 font-semibold text-slate-950">{query.data.subscription?.plan_code ?? "Not set"}</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Renewal</p>
+            <p className="mt-1 font-semibold text-slate-950">{query.data.subscription?.current_period_end ?? "N/A"}</p>
+          </div>
         </div>
       ) : null}
-    </section>
+    </AnimatedCard>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AnimatedCard } from "@/components/ui/animated-surface";
 
 type UserRow = {
   id: string;
@@ -85,14 +86,15 @@ export function UserManagementPanel() {
   }, [search, usersQuery.data?.users]);
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="font-display text-2xl text-slate-900">User Management</h2>
+    <AnimatedCard className="p-6">
+      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">People</p>
+      <h2 className="mt-1 font-display text-2xl text-slate-950">User Management</h2>
       <p className="mt-1 text-sm text-slate-600">View users, update role, and maintain profile details.</p>
 
       <input
         value={search}
         onChange={(event) => setSearch(event.target.value)}
-        className="mt-4 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+        className="mt-4 w-full rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm shadow-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
         placeholder="Search by email, role, name, or subscription status"
       />
 
@@ -102,10 +104,10 @@ export function UserManagementPanel() {
 
       <div className="mt-5 space-y-3">
         {filteredUsers.map((row) => (
-          <article key={row.id} className="rounded-2xl border border-slate-200 p-4">
+          <article key={row.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-semibold text-slate-900">{row.email}</p>
-              <span className="rounded-full border border-slate-300 px-2 py-0.5 text-xs font-semibold text-slate-700">
+              <span className="rounded-full border border-slate-300 bg-white px-2 py-0.5 text-xs font-semibold text-slate-700 shadow-sm">
                 {row.role}
               </span>
             </div>
@@ -131,7 +133,7 @@ export function UserManagementPanel() {
                   <select
                     value={roleValue}
                     onChange={(event) => setRoleValue(event.target.value as "subscriber" | "admin")}
-                    className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                   >
                     <option value="subscriber">subscriber</option>
                     <option value="admin">admin</option>
@@ -139,19 +141,19 @@ export function UserManagementPanel() {
                   <input
                     value={fullName}
                     onChange={(event) => setFullName(event.target.value)}
-                    className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                     placeholder="Full name"
                   />
                   <input
                     value={countryCode}
                     onChange={(event) => setCountryCode(event.target.value)}
-                    className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                     placeholder="Country code"
                   />
                   <input
                     value={timezone}
                     onChange={(event) => setTimezone(event.target.value)}
-                    className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                     placeholder="Timezone"
                   />
 
@@ -159,14 +161,14 @@ export function UserManagementPanel() {
                     <button
                       type="submit"
                       disabled={updateMutation.isPending}
-                      className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white"
+                      className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-slate-800"
                     >
                       {updateMutation.isPending ? "Saving..." : "Save"}
                     </button>
                     <button
                       type="button"
                       onClick={() => setEditingUserId(null)}
-                      className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700"
+                      className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-400 hover:text-slate-950"
                     >
                       Cancel
                     </button>
@@ -182,7 +184,7 @@ export function UserManagementPanel() {
                     setCountryCode(row.profile?.country_code ?? "");
                     setTimezone(row.profile?.timezone ?? "UTC");
                   }}
-                  className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700"
+                  className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-400 hover:text-slate-950"
                 >
                   Edit User
                 </button>
@@ -193,6 +195,6 @@ export function UserManagementPanel() {
 
         {!filteredUsers.length ? <p className="text-sm text-slate-600">No users in this view.</p> : null}
       </div>
-    </section>
+    </AnimatedCard>
   );
 }

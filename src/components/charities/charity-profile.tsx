@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { AnimatedCard, AnimatedSection } from "@/components/ui/animated-surface";
 
 type CharityProfileResponse = {
   charity: {
@@ -58,8 +59,8 @@ export function CharityProfile({ slug }: { slug: string }) {
   });
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
-      <Link href="/charities" className="text-sm font-semibold text-slate-700 underline">
+    <AnimatedSection className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
+      <Link href="/charities" className="text-sm font-semibold text-slate-700 underline decoration-slate-400 underline-offset-4">
         Back to Charity Directory
       </Link>
 
@@ -72,7 +73,7 @@ export function CharityProfile({ slug }: { slug: string }) {
 
       {profileQuery.data ? (
         <>
-          <header className="mt-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <AnimatedCard className="mt-4 p-6">
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="font-display text-4xl text-slate-950">{profileQuery.data.charity.name}</h1>
               {profileQuery.data.charity.is_featured ? (
@@ -85,14 +86,14 @@ export function CharityProfile({ slug }: { slug: string }) {
                 href={profileQuery.data.charity.website_url}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-4 inline-block text-sm font-semibold text-slate-900 underline"
+                className="mt-4 inline-block text-sm font-semibold text-slate-900 underline decoration-slate-400 underline-offset-4"
               >
                 Visit official website
               </a>
             ) : null}
-          </header>
+          </AnimatedCard>
 
-          <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <AnimatedCard className="mt-6 p-6">
             <h2 className="font-display text-2xl text-slate-900">Gallery</h2>
             {profileQuery.data.media.length ? (
               <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -112,9 +113,9 @@ export function CharityProfile({ slug }: { slug: string }) {
             ) : (
               <p className="mt-3 text-sm text-slate-600">No media has been published yet.</p>
             )}
-          </section>
+          </AnimatedCard>
 
-          <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <AnimatedCard className="mt-6 p-6">
             <h2 className="font-display text-2xl text-slate-900">Upcoming and Recent Events</h2>
             {profileQuery.data.events.length ? (
               <div className="mt-4 space-y-4">
@@ -140,9 +141,9 @@ export function CharityProfile({ slug }: { slug: string }) {
             ) : (
               <p className="mt-3 text-sm text-slate-600">No charity events are currently published.</p>
             )}
-          </section>
+          </AnimatedCard>
         </>
       ) : null}
-    </section>
+    </AnimatedSection>
   );
 }

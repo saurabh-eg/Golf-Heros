@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { AnimatedCard } from "@/components/ui/animated-surface";
 
 type AnalyticsResponse = {
   totals: {
@@ -63,8 +64,9 @@ export function AdminAnalyticsPanel() {
   }, [analyticsQuery.data?.monthlySeries]);
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="font-display text-2xl text-slate-900">Analytics & Reports</h2>
+    <AnimatedCard className="p-6">
+      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Insights</p>
+      <h2 className="mt-1 font-display text-2xl text-slate-950">Analytics & Reports</h2>
       <p className="mt-1 text-sm text-slate-600">Live operational totals and six-month trend snapshots.</p>
 
       {analyticsQuery.isLoading ? <p className="mt-3 text-sm text-slate-600">Loading analytics...</p> : null}
@@ -75,35 +77,35 @@ export function AdminAnalyticsPanel() {
       {analyticsQuery.data ? (
         <>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <article className="rounded-2xl border border-slate-200 p-4">
-              <p className="text-xs text-slate-600">Total Users</p>
+            <article className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Total users</p>
               <p className="mt-1 text-2xl font-semibold text-slate-900">{analyticsQuery.data.totals.users}</p>
             </article>
-            <article className="rounded-2xl border border-slate-200 p-4">
-              <p className="text-xs text-slate-600">Active Subscribers</p>
+            <article className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Active subscribers</p>
               <p className="mt-1 text-2xl font-semibold text-slate-900">{analyticsQuery.data.totals.active_subscribers}</p>
             </article>
-            <article className="rounded-2xl border border-slate-200 p-4">
-              <p className="text-xs text-slate-600">Published Draws</p>
+            <article className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Published draws</p>
               <p className="mt-1 text-2xl font-semibold text-slate-900">{analyticsQuery.data.totals.published_draws}</p>
             </article>
-            <article className="rounded-2xl border border-slate-200 p-4">
-              <p className="text-xs text-slate-600">Total Winners</p>
+            <article className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Total winners</p>
               <p className="mt-1 text-2xl font-semibold text-slate-900">{analyticsQuery.data.totals.winners}</p>
             </article>
           </div>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <article className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-xs text-amber-700">Pending Verifications</p>
+            <article className="rounded-2xl border border-amber-200 bg-amber-50 p-4 transition hover:border-amber-300 hover:bg-amber-100/60">
+              <p className="text-xs uppercase tracking-[0.18em] text-amber-700">Pending verifications</p>
               <p className="mt-1 text-2xl font-semibold text-amber-900">{analyticsQuery.data.totals.pending_verifications}</p>
             </article>
-            <article className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-xs text-amber-700">Pending Payouts</p>
+            <article className="rounded-2xl border border-amber-200 bg-amber-50 p-4 transition hover:border-amber-300 hover:bg-amber-100/60">
+              <p className="text-xs uppercase tracking-[0.18em] text-amber-700">Pending payouts</p>
               <p className="mt-1 text-2xl font-semibold text-amber-900">{analyticsQuery.data.totals.pending_payouts}</p>
             </article>
-            <article className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:col-span-2">
-              <p className="text-xs text-emerald-700">Donations (Last 6 Months)</p>
+            <article className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 transition hover:border-emerald-300 hover:bg-emerald-100/60 sm:col-span-2">
+              <p className="text-xs uppercase tracking-[0.18em] text-emerald-700">Donations (last 6 months)</p>
               <p className="mt-1 text-2xl font-semibold text-emerald-900">
                 {formatMinor(analyticsQuery.data.totals.donation_last_6_months_minor)}
               </p>
@@ -111,8 +113,8 @@ export function AdminAnalyticsPanel() {
           </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            <article className="rounded-2xl border border-slate-200 p-4">
-              <h3 className="text-sm font-semibold text-slate-900">6-Month Financial Trend</h3>
+            <article className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
+              <h3 className="text-sm font-semibold text-slate-950">6-Month Financial Trend</h3>
               <p className="mt-1 text-xs text-slate-600">Combined bars: donations + prize pools (gross).</p>
 
               <div className="mt-4 space-y-3">
@@ -134,8 +136,8 @@ export function AdminAnalyticsPanel() {
               </div>
             </article>
 
-            <article className="rounded-2xl border border-slate-200 p-4">
-              <h3 className="text-sm font-semibold text-slate-900">Top Charities (Donations)</h3>
+            <article className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
+              <h3 className="text-sm font-semibold text-slate-950">Top Charities (Donations)</h3>
               <p className="mt-1 text-xs text-slate-600">Based on independent donations processed in last 6 months.</p>
 
               <div className="mt-4 space-y-3">
@@ -153,6 +155,6 @@ export function AdminAnalyticsPanel() {
           </div>
         </>
       ) : null}
-    </section>
+    </AnimatedCard>
   );
 }

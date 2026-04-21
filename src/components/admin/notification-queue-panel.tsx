@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AnimatedCard } from "@/components/ui/animated-surface";
 
 type NotificationStatus = "queued" | "sent" | "failed" | "suppressed";
 
@@ -77,8 +78,9 @@ export function NotificationQueuePanel() {
   }, [notificationsQuery.data?.notifications, statusFilter]);
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="font-display text-2xl text-slate-900">Notification Queue</h2>
+    <AnimatedCard className="p-6">
+      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Notifications</p>
+      <h2 className="mt-1 font-display text-2xl text-slate-950">Notification Queue</h2>
       <p className="mt-1 text-sm text-slate-600">Monitor queued/sent/failed notifications and retry failed deliveries.</p>
 
       {notificationsQuery.isLoading ? <p className="mt-3 text-sm text-slate-600">Loading notifications...</p> : null}
@@ -90,35 +92,35 @@ export function NotificationQueuePanel() {
         <button
           type="button"
           onClick={() => dispatchNowMutation.mutate()}
-          className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white"
+          className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-slate-800"
         >
           {dispatchNowMutation.isPending ? "Dispatching..." : "Dispatch Now"}
         </button>
         <button
           type="button"
           onClick={() => setStatusFilter("all")}
-          className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700"
+          className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-400 hover:text-slate-950"
         >
           All
         </button>
         <button
           type="button"
           onClick={() => setStatusFilter("queued")}
-          className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700"
+          className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-400 hover:text-slate-950"
         >
           Queued ({notificationsQuery.data?.summary.queued ?? 0})
         </button>
         <button
           type="button"
           onClick={() => setStatusFilter("sent")}
-          className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700"
+          className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-400 hover:text-slate-950"
         >
           Sent ({notificationsQuery.data?.summary.sent ?? 0})
         </button>
         <button
           type="button"
           onClick={() => setStatusFilter("failed")}
-          className="rounded-full border border-red-300 px-3 py-1 text-xs font-semibold text-red-700"
+          className="rounded-full border border-red-300 bg-white px-3 py-1 text-xs font-semibold text-red-700 shadow-sm hover:border-red-400 hover:bg-red-50"
         >
           Failed ({notificationsQuery.data?.summary.failed ?? 0})
         </button>
@@ -130,7 +132,7 @@ export function NotificationQueuePanel() {
         ) : null}
 
         {filteredNotifications.map((row) => (
-          <article key={row.id} className="rounded-2xl border border-slate-200 p-4">
+          <article key={row.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-semibold text-slate-900">{row.users?.email ?? "Unknown recipient"}</p>
               <p className="text-xs text-slate-600">{row.delivery_status}</p>
@@ -144,7 +146,7 @@ export function NotificationQueuePanel() {
               <button
                 type="button"
                 onClick={() => retryMutation.mutate(row.id)}
-                className="mt-3 rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700"
+                className="mt-3 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-400 hover:text-slate-950"
               >
                 Retry
               </button>
@@ -154,6 +156,6 @@ export function NotificationQueuePanel() {
 
         {!filteredNotifications.length ? <p className="text-sm text-slate-600">No notifications in this view.</p> : null}
       </div>
-    </section>
+    </AnimatedCard>
   );
 }

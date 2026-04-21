@@ -40,8 +40,15 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isAdminPath && user) {
-    const role = (user.app_metadata?.role ?? user.user_metadata?.role) as string | undefined;
-    if (role !== "admin") {
+    const roleFromMetadata = (user.app_metadata?.role ?? user.user_metadata?.role) as string | undefined;
+    let isAdmin = roleFromMetadata === "admin";
+
+    if (!isAdmin) {
+      const { data: userRow } = await supabase.from("users").select("role").eq("id", user.id).maybeSingle();
+      isAdmin = userRow?.role === "admin";
+    }
+
+    if (!isAdmin) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/dashboard";
       redirectUrl.search = "";

@@ -7,6 +7,7 @@ const publicEnvSchema = z.object({
 });
 
 const serverEnvSchema = z.object({
+  ADMIN_EMAIL: z.string().email().optional(),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PRICE_MONTHLY_ID: z.string().optional(),
@@ -28,6 +29,7 @@ export const publicEnv = publicEnvSchema.parse({
 });
 
 export const serverEnv = serverEnvSchema.parse({
+  ADMIN_EMAIL: process.env.ADMIN_EMAIL,
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
   STRIPE_PRICE_MONTHLY_ID: process.env.STRIPE_PRICE_MONTHLY_ID,

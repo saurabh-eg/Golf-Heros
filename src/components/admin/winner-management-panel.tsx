@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AnimatedCard } from "@/components/ui/animated-surface";
 
 type VerificationRecord = {
   id: string;
@@ -78,8 +79,9 @@ export function WinnerManagementPanel() {
   });
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="font-display text-2xl text-slate-900">Winner Management</h2>
+    <AnimatedCard className="p-6">
+      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Winners</p>
+      <h2 className="mt-1 font-display text-2xl text-slate-950">Winner Management</h2>
       <p className="mt-1 text-sm text-slate-600">Review winner proofs and mark verified payouts as paid.</p>
 
       {adminQuery.isLoading ? <p className="mt-3 text-sm text-slate-600">Loading winner queue...</p> : null}
@@ -88,7 +90,7 @@ export function WinnerManagementPanel() {
       <div className="mt-5 space-y-4">
         <h3 className="text-sm font-semibold text-slate-900">Verification Queue</h3>
         {(adminQuery.data?.verifications ?? []).map((record) => (
-          <article key={record.id} className="rounded-2xl border border-slate-200 p-4">
+          <article key={record.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
             <p className="text-sm font-semibold text-slate-900">
               {record.users?.email ?? "Unknown user"} · Tier {record.winners.tier} · {record.winners.winning_amount_minor} {record.winners.currency}
             </p>
@@ -100,14 +102,14 @@ export function WinnerManagementPanel() {
                 <button
                   type="button"
                   onClick={() => reviewMutation.mutate({ verificationId: record.id, decision: "approved" })}
-                  className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white"
+                  className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-slate-800"
                 >
                   Approve
                 </button>
                 <button
                   type="button"
                   onClick={() => reviewMutation.mutate({ verificationId: record.id, decision: "rejected" })}
-                  className="rounded-full border border-red-300 px-3 py-1 text-xs font-semibold text-red-600"
+                  className="rounded-full border border-red-300 bg-white px-3 py-1 text-xs font-semibold text-red-600 shadow-sm hover:border-red-400 hover:bg-red-50"
                 >
                   Reject
                 </button>
@@ -118,7 +120,7 @@ export function WinnerManagementPanel() {
 
         <h3 className="pt-2 text-sm font-semibold text-slate-900">Payouts</h3>
         {(adminQuery.data?.payouts ?? []).map((payout) => (
-          <article key={payout.id} className="rounded-2xl border border-slate-200 p-4">
+          <article key={payout.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
             <p className="text-sm font-semibold text-slate-900">
               Winner {payout.winner_id.slice(0, 8)} · {payout.amount_minor} {payout.currency}
             </p>
@@ -134,7 +136,7 @@ export function WinnerManagementPanel() {
                       [payout.id]: event.target.value,
                     }))
                   }
-                  className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
                   placeholder="Payment reference"
                 />
                 <button
@@ -145,7 +147,7 @@ export function WinnerManagementPanel() {
                       paymentReference: paymentRefByPayoutId[payout.id] ?? "manual-ref",
                     })
                   }
-                  className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
+                  className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-slate-800"
                 >
                   Mark Paid
                 </button>
@@ -154,6 +156,6 @@ export function WinnerManagementPanel() {
           </article>
         ))}
       </div>
-    </section>
+    </AnimatedCard>
   );
 }

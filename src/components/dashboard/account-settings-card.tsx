@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
+import { AnimatedCard } from "@/components/ui/animated-surface";
 
 const emailSchema = z.object({
   email: z.email("Enter a valid email address."),
@@ -75,8 +76,9 @@ export function AccountSettingsCard() {
   });
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="font-display text-2xl text-slate-900">Account Settings</h2>
+    <AnimatedCard className="p-6">
+      <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Profile</p>
+      <h2 className="mt-1 font-display text-2xl text-slate-950">Account Settings</h2>
       <p className="mt-1 text-sm text-slate-600">Update your sign-in email for account communication.</p>
 
       {accountQuery.isLoading ? <p className="mt-3 text-sm text-slate-600">Loading account...</p> : null}
@@ -89,14 +91,14 @@ export function AccountSettingsCard() {
         <input
           type="email"
           placeholder="you@example.com"
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+          className="rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm shadow-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
           {...form.register("email")}
         />
 
         <button
           type="submit"
           disabled={updateEmailMutation.isPending}
-          className="rounded-full bg-ink px-5 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-70"
+          className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_35px_-18px_rgba(16,32,58,0.75)] hover:bg-slate-800 disabled:opacity-70"
         >
           {updateEmailMutation.isPending ? "Saving..." : "Update Email"}
         </button>
@@ -116,7 +118,7 @@ export function AccountSettingsCard() {
           type="button"
           onClick={() => signOutMutation.mutate()}
           disabled={signOutMutation.isPending}
-          className="mt-3 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 hover:border-slate-900 hover:text-slate-900 disabled:opacity-70"
+          className="mt-3 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:border-slate-400 hover:text-slate-950 disabled:opacity-70"
         >
           {signOutMutation.isPending ? "Signing out..." : "Sign Out"}
         </button>
@@ -124,6 +126,6 @@ export function AccountSettingsCard() {
           <p className="mt-2 text-sm text-red-600">{(signOutMutation.error as Error).message}</p>
         ) : null}
       </div>
-    </section>
+    </AnimatedCard>
   );
 }
