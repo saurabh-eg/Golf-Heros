@@ -39,6 +39,15 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - Vercel cron is configured in `vercel.json` to call this endpoint every 5 minutes.
 - Secure the endpoint in production with `CRON_SECRET` (Vercel Authorization bearer secret) and optionally `NOTIFICATION_DISPATCH_SECRET` for manual POST dispatch.
 
+## Monthly Draw Scheduler
+
+- Monthly official draw publish endpoint: `GET /api/internal/draw/publish`
+- Vercel cron is configured in `vercel.json` to call this endpoint monthly (`0 3 1 * *`, UTC).
+- Endpoint uses `CRON_SECRET` bearer authorization, same as notification cron routes.
+- Optional manual trigger:
+	- `POST /api/internal/draw/publish` with payload `{ "mode": "random" | "weighted", "drawYear": 2026, "drawMonth": 4 }`
+	- `GET /api/internal/draw/publish?mode=random&drawYear=2026&drawMonth=4`
+
 ## Independent Donations
 
 - Donation checkout endpoint: `POST /api/donations/checkout`

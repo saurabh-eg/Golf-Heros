@@ -4,6 +4,10 @@
     {
       "path": "/api/internal/notifications/dispatch",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/internal/draw/publish",
+      "schedule": "0 3 1 * *"
     }
   ]
 }

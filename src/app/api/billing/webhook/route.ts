@@ -12,6 +12,14 @@ const subscriptionEventTypes = new Set([
 ]);
 
 const donationEventTypes = new Set(["checkout.session.completed"]);
+const activeSubscriptionStatuses = new Set(["active", "trialing"]);
+const lapsedSubscriptionStatuses = new Set(["past_due", "unpaid", "incomplete_expired", "paused"]);
+
+type SubscriptionLifecycleNotification = {
+  eventType: string;
+  templateCode: string;
+  payload: Record<string, unknown>;
+};
 
 function timestampFromUnix(value: number | null): string | null {
   if (!value) return null;
@@ -51,6 +59,107 @@ function resolveStripeCustomerId(event: Stripe.Event): string {
     return eventObject.customer.id;
   }
   return "unknown";
+}
+
+function readPreviousAttributes(event: Stripe.Event): Record<string, unknown> | null {
+  const candidate = (event.data as { previous_attributes?: unknown }).previous_attributes;
+  if (candidate && typeof candidate === "object") {
+    return candidate as Record<string, unknown>;
+  }
+  return null;
+}
+
+function readPreviousStatus(previousAttributes: Record<string, unknown> | null): string | null {
+  const value = previousAttributes?.status;
+  return typeof value === "string" ? value : null;
+}
+
+function hasChanged(previousAttributes: Record<string, unknown> | null, key: string): boolean {
+  return previousAttributes ? Object.prototype.hasOwnProperty.call(previousAttributes, key) : false;
+}
+
+function isActiveStatus(status: string | null | undefined): boolean {
+  return typeof status === "string" && activeSubscriptionStatuses.has(status);
+}
+
+function isLapsedStatus(status: string | null | undefined): boolean {
+  return typeof status === "string" && lapsedSubscriptionStatuses.has(status);
+}
+
+function resolveSubscriptionLifecycleNotification(
+  event: Stripe.Event,
+  subscription: Stripe.Subscription,
+  planCode: "monthly" | "yearly" | null,
+  currentPeriodEnd: string,
+): SubscriptionLifecycleNotification | null {
+  const payload = {
+    stripeSubscriptionId: subscription.id,
+    planCode,
+    status: subscription.status,
+    currentPeriodEnd,
+    cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
+  } satisfies Record<string, unknown>;
+
+  if (event.type === "customer.subscription.created") {
+    if (!isActiveStatus(subscription.status)) {
+      return null;
+    }
+
+    return {
+      eventType: "subscription.activated",
+      templateCode: "subscription_activated",
+      payload,
+    };
+  }
+
+  if (event.type === "customer.subscription.deleted") {
+    return {
+      eventType: "subscription.canceled",
+      templateCode: "subscription_canceled",
+      payload,
+    };
+  }
+
+  if (event.type !== "customer.subscription.updated") {
+    return null;
+  }
+
+  const previousAttributes = readPreviousAttributes(event);
+  const previousStatus = readPreviousStatus(previousAttributes);
+
+  if (hasChanged(previousAttributes, "cancel_at_period_end") && subscription.cancel_at_period_end) {
+    return {
+      eventType: "subscription.canceled",
+      templateCode: "subscription_canceled",
+      payload,
+    };
+  }
+
+  if (previousStatus !== subscription.status && isLapsedStatus(subscription.status)) {
+    return {
+      eventType: "subscription.lapsed",
+      templateCode: "subscription_lapsed",
+      payload,
+    };
+  }
+
+  if (previousStatus && !isActiveStatus(previousStatus) && isActiveStatus(subscription.status)) {
+    return {
+      eventType: "subscription.activated",
+      templateCode: "subscription_activated",
+      payload,
+    };
+  }
+
+  if (isActiveStatus(subscription.status) && hasChanged(previousAttributes, "current_period_end")) {
+    return {
+      eventType: "subscription.renewed",
+      templateCode: "subscription_renewed",
+      payload,
+    };
+  }
+
+  return null;
 }
 
 export async function POST(request: Request) {
@@ -112,7 +221,10 @@ export async function POST(request: Request) {
     }
 
     if (subscriptionEventTypes.has(event.type)) {
-      const subscription = event.data.object as Stripe.Subscription;
+      const subscription = event.data.object as Stripe.Subscription & {
+        current_period_start?: number | null;
+        current_period_end?: number | null;
+      };
       const userId = subscription.metadata?.user_id ?? null;
 
       if (!userId) {
@@ -137,11 +249,12 @@ export async function POST(request: Request) {
         timestampFromUnixMaybe(subscription.current_period_end) ??
         timestampFromUnixMaybe(firstItem?.current_period_end) ??
         addMonthsIso(periodStart, 1);
+      const planCode = resolvePlanCode(subscription);
 
       const { error: subscriptionError } = await supabase.from("subscriptions").upsert(
         {
           user_id: userId,
-          plan_code: resolvePlanCode(subscription),
+          plan_code: planCode,
           stripe_customer_id:
             typeof subscription.customer === "string"
               ? subscription.customer
@@ -166,6 +279,34 @@ export async function POST(request: Request) {
           error: subscriptionError.message,
         });
         return NextResponse.json({ error: subscriptionError.message }, { status: 500 });
+      }
+
+      const lifecycleNotification = resolveSubscriptionLifecycleNotification(
+        event,
+        subscription,
+        planCode,
+        periodEnd,
+      );
+
+      if (lifecycleNotification) {
+        const { error: notificationError } = await supabase.from("notifications").insert({
+          user_id: userId,
+          channel: "email",
+          event_type: lifecycleNotification.eventType,
+          template_code: lifecycleNotification.templateCode,
+          payload_json: lifecycleNotification.payload,
+          delivery_status: "queued",
+        });
+
+        if (notificationError) {
+          console.error("[billing-webhook] notifications insert failed", {
+            eventId: event.id,
+            subscriptionId: subscription.id,
+            userId,
+            eventType: lifecycleNotification.eventType,
+            error: notificationError.message,
+          });
+        }
       }
     }
 

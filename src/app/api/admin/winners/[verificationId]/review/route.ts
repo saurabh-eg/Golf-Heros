@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth/session";
+import { writeAuditLog } from "@/lib/audit/logs";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const bodySchema = z.object({
@@ -33,7 +34,7 @@ export async function PATCH(
 
   const { data: verification, error: verificationError } = await supabase
     .from("winner_verifications")
-    .select("id,winner_id,submitted_by_user_id,winners!inner(id,winning_amount_minor,currency)")
+    .select("id,winner_id,submitted_by_user_id,status,review_notes,winners!inner(id,winning_amount_minor,currency)")
     .eq("id", verificationId)
     .single();
 
@@ -70,6 +71,23 @@ export async function PATCH(
       { onConflict: "winner_id" },
     );
   }
+
+  await writeAuditLog({
+    actorUserId: user.id,
+    entityType: "winner_verifications",
+    entityId: verificationId,
+    action: `admin.review.${parsed.data.decision}`,
+    oldValues: {
+      status: verification.status,
+      review_notes: verification.review_notes,
+    },
+    newValues: {
+      status: parsed.data.decision,
+      review_notes: parsed.data.reviewNotes ?? null,
+      reviewed_by_user_id: user.id,
+      payout_created: parsed.data.decision === "approved",
+    },
+  });
 
   await supabase.from("notifications").insert({
     user_id: verification.submitted_by_user_id,

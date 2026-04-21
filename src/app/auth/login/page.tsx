@@ -1,13 +1,14 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { FormEvent, useState } from "react";
 
 export default function LoginPage() {
-  const searchParams = useSearchParams();
-  const nextPath = useMemo(() => searchParams.get("next") ?? "/dashboard", [searchParams]);
-
   const [email, setEmail] = useState("");
+  const [nextPath] = useState(() => {
+    if (typeof window === "undefined") return "/dashboard";
+    const next = new URLSearchParams(window.location.search).get("next");
+    return next?.startsWith("/") ? next : "/dashboard";
+  });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 

@@ -1,1 +1,1 @@
-export { POST } from "../../../billing/checkout/route";
+export { POST } from "../../billing/checkout/route";

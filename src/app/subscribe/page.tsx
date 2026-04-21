@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import type { PlanCode } from "@/lib/billing/plans";
 
 export default function SubscribePage() {
-  const searchParams = useSearchParams();
-  const checkoutStatus = searchParams.get("checkout");
+  const [checkoutStatus] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return new URLSearchParams(window.location.search).get("checkout");
+  });
   const [loadingPlan, setLoadingPlan] = useState<PlanCode | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const isVerifyingAccess = checkoutStatus === "success" && !errorMessage;

@@ -68,7 +68,10 @@ export async function POST(_request: Request, context: Context) {
   }
 
   const stripe = new Stripe(serverEnv.STRIPE_SECRET_KEY);
-  const subscription = await stripe.subscriptions.retrieve(current.stripe_subscription_id);
+  const subscription = (await stripe.subscriptions.retrieve(current.stripe_subscription_id)) as Stripe.Subscription & {
+    current_period_start?: number | null;
+    current_period_end?: number | null;
+  };
 
   const firstItem = subscription.items.data[0] as Stripe.SubscriptionItem & {
     current_period_start?: number | null;

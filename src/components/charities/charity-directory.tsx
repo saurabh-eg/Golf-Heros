@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "next/navigation";
 
 type Charity = {
   id: string;
@@ -30,8 +29,10 @@ async function getCharities(): Promise<Charity[]> {
 }
 
 export function CharityDirectory() {
-  const searchParams = useSearchParams();
-  const donationStatus = searchParams.get("donation");
+  const [donationStatus] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return new URLSearchParams(window.location.search).get("donation");
+  });
   const [query, setQuery] = useState("");
   const [selectedDonationCharityId, setSelectedDonationCharityId] = useState<string | null>(null);
   const [donationAmount, setDonationAmount] = useState(10);

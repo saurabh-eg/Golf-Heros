@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth/session";
+import { writeAuditLog } from "@/lib/audit/logs";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const bodySchema = z.object({
@@ -33,7 +34,7 @@ export async function PATCH(
 
   const { data: payout, error: payoutError } = await supabase
     .from("payouts")
-    .select("id,status,winner_id,winners!inner(user_id)")
+    .select("id,status,winner_id,payment_reference,winners!inner(user_id)")
     .eq("id", payoutId)
     .single();
 
@@ -61,6 +62,22 @@ export async function PATCH(
   }
 
   const winnerUserId = (payout.winners as unknown as { user_id: string }).user_id;
+
+  await writeAuditLog({
+    actorUserId: user.id,
+    entityType: "payouts",
+    entityId: payoutId,
+    action: "admin.mark_paid",
+    oldValues: {
+      status: payout.status,
+      payment_reference: payout.payment_reference,
+    },
+    newValues: {
+      status: "paid",
+      payment_reference: parsed.data.paymentReference,
+      marked_paid_by_user_id: user.id,
+    },
+  });
 
   await supabase.from("notifications").insert({
     user_id: winnerUserId,

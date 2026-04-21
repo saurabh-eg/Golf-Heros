@@ -33,7 +33,10 @@ export async function GET(request: NextRequest) {
 
   const rows = (data ?? []).filter((row) => {
     if (!search) return true;
-    const email = (Array.isArray(row.users) ? row.users[0]?.email : row.users?.email) ?? "";
+    const usersRelation = row.users as { email?: string } | { email?: string }[] | null;
+    const email = Array.isArray(usersRelation)
+      ? (usersRelation[0]?.email ?? "")
+      : (usersRelation?.email ?? "");
     return (
       email.toLowerCase().includes(search) ||
       String(row.score_date).includes(search) ||
