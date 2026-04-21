@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/auth/roles";
 import { isActiveSubscriptionStatus } from "@/lib/billing/plans";
+import { ensurePublicUserRecord } from "@/lib/auth/provision-user";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 function toAppRole(value: unknown): "admin" | "subscriber" | null {
@@ -20,6 +21,10 @@ export async function getCurrentUser() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  if (user) {
+    await ensurePublicUserRecord(user);
+  }
 
   return user;
 }

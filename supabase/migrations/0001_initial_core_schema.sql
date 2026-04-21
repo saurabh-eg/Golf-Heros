@@ -117,25 +117,30 @@ alter table public.subscriptions enable row level security;
 alter table public.scores enable row level security;
 alter table public.user_charity_preferences enable row level security;
 
-create policy if not exists users_self_select on public.users
+drop policy if exists users_self_select on public.users;
+create policy users_self_select on public.users
   for select to authenticated
   using (auth.uid() = id);
 
-create policy if not exists profiles_self_all on public.profiles
+drop policy if exists profiles_self_all on public.profiles;
+create policy profiles_self_all on public.profiles
   for all to authenticated
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
-create policy if not exists subscriptions_self_select on public.subscriptions
+drop policy if exists subscriptions_self_select on public.subscriptions;
+create policy subscriptions_self_select on public.subscriptions
   for select to authenticated
   using (auth.uid() = user_id);
 
-create policy if not exists scores_self_all on public.scores
+drop policy if exists scores_self_all on public.scores;
+create policy scores_self_all on public.scores
   for all to authenticated
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
-create policy if not exists charity_pref_self_all on public.user_charity_preferences
+drop policy if exists charity_pref_self_all on public.user_charity_preferences;
+create policy charity_pref_self_all on public.user_charity_preferences
   for all to authenticated
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
