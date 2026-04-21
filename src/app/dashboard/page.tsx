@@ -1,4 +1,5 @@
 import { CharityPreferenceCard } from "@/components/dashboard/charity-preference-card";
+import { ParticipationSummaryCard } from "@/components/dashboard/participation-summary-card";
 import { ScoreManager } from "@/components/dashboard/score-manager";
 import { SubscriptionStatusCard } from "@/components/dashboard/subscription-status-card";
 import { WinnerVerificationCard } from "@/components/dashboard/winner-verification-card";
@@ -10,7 +11,7 @@ export default function DashboardPage() {
       <header>
         <h1 className="font-display text-4xl text-slate-950">Subscriber Dashboard</h1>
         <p className="mt-3 max-w-2xl text-slate-700">
-          Active modules: subscription status, charity preference, and score management.
+          Manage subscription, scores, participation history, winnings, and charity preferences in one place.
         </p>
         <Link
           href="/dashboard/settings"
@@ -24,6 +25,7 @@ export default function DashboardPage() {
         <CharityPreferenceCard />
       </div>
       <ScoreManager />
+      <ParticipationSummaryCard />
       <WinnerVerificationCard />
     </section>
   );

@@ -1,13 +1,19 @@
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth/session";
+import { LogoutButton } from "@/components/layout/logout-button";
 
-const links = [
-  { href: "/", label: "Home" },
-  { href: "/charities", label: "Charities" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/admin", label: "Admin" },
-];
+export async function MainNav() {
+  const user = await getCurrentUser();
+  const role = user ? (user.app_metadata?.role ?? user.user_metadata?.role) : null;
+  const isAdmin = role === "admin";
 
-export function MainNav() {
+  const links = [
+    { href: "/", label: "Home" },
+    { href: "/charities", label: "Charities" },
+    ...(user ? [{ href: "/dashboard", label: "Dashboard" }] : []),
+    ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
+  ];
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/85 backdrop-blur">
       <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
@@ -22,6 +28,17 @@ export function MainNav() {
               </Link>
             </li>
           ))}
+          {!user ? (
+            <li>
+              <Link className="transition-colors hover:text-slate-900" href="/auth/login">
+                Sign in
+              </Link>
+            </li>
+          ) : (
+            <li>
+              <LogoutButton />
+            </li>
+          )}
         </ul>
       </nav>
     </header>

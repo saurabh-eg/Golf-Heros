@@ -11,6 +11,8 @@ const subscriptionEventTypes = new Set([
   "customer.subscription.deleted",
 ]);
 
+const donationEventTypes = new Set(["checkout.session.completed"]);
+
 function timestampFromUnix(value: number | null): string | null {
   if (!value) return null;
   return new Date(value * 1000).toISOString();
@@ -164,6 +166,41 @@ export async function POST(request: Request) {
           error: subscriptionError.message,
         });
         return NextResponse.json({ error: subscriptionError.message }, { status: 500 });
+      }
+    }
+
+    if (donationEventTypes.has(event.type)) {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const sourceType = session.metadata?.source_type;
+
+      if (session.mode === "payment" && sourceType === "independent_donation") {
+        const charityId = session.metadata?.charity_id;
+        const userId = session.metadata?.user_id || null;
+        const amountMinor = session.amount_total ?? 0;
+        const currency = (session.currency ?? "usd").toUpperCase();
+
+        if (charityId && amountMinor > 0) {
+          const { error: donationError } = await supabase.from("donations").insert({
+            user_id: userId,
+            charity_id: charityId,
+            source_type: "independent",
+            amount_minor: amountMinor,
+            currency,
+            reference_type: "manual_checkout",
+            reference_id: session.id,
+          });
+
+          if (donationError) {
+            console.error("[billing-webhook] donations insert failed", {
+              eventId: event.id,
+              sessionId: session.id,
+              charityId,
+              userId,
+              error: donationError.message,
+            });
+            return NextResponse.json({ error: donationError.message }, { status: 500 });
+          }
+        }
       }
     }
 
