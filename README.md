@@ -77,7 +77,14 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ```bash
 npm run lint
 npm run test
+npm run test:e2e
 ```
+
+## CI and Release Verification
+
+- CI workflow: `.github/workflows/ci.yml` (lint + unit tests + production build).
+- E2E baseline tests live under `tests/e2e`.
+- Release evidence checklist for CHK-01 to CHK-11 is maintained in `../release-evidence/README.md`.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

@@ -1,11 +1,4 @@
-import { AdminAnalyticsPanel } from "@/components/admin/admin-analytics-panel";
-import { CharityManagementPanel } from "@/components/admin/charity-management-panel";
-import { DrawControlPanel } from "@/components/admin/draw-control-panel";
-import { NotificationQueuePanel } from "@/components/admin/notification-queue-panel";
-import { ScoreModerationPanel } from "@/components/admin/score-moderation-panel";
-import { SubscriptionManagementPanel } from "@/components/admin/subscription-management-panel";
-import { UserManagementPanel } from "@/components/admin/user-management-panel";
-import { WinnerManagementPanel } from "@/components/admin/winner-management-panel";
+import { AdminConsoleTabs } from "@/components/admin/admin-console-tabs";
 import { AnimatedChip, AnimatedSection } from "@/components/ui/animated-surface";
 
 export default function AdminPage() {
@@ -18,14 +11,7 @@ export default function AdminPage() {
           Manage draw operations, winner lifecycle, notifications, and business analytics.
         </p>
       </header>
-      <AdminAnalyticsPanel />
-      <UserManagementPanel />
-      <SubscriptionManagementPanel />
-      <ScoreModerationPanel />
-      <CharityManagementPanel />
-      <DrawControlPanel />
-      <WinnerManagementPanel />
-      <NotificationQueuePanel />
+      <AdminConsoleTabs />
     </AnimatedSection>
   );
 }
