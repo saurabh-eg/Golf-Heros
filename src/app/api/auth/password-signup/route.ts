@@ -17,16 +17,26 @@ export async function POST(request: Request) {
   }
 
   const normalizedEmail = parsed.data.email.trim().toLowerCase();
-
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.auth.signInWithPassword({
+
+  const { data, error } = await supabase.auth.signUp({
     email: normalizedEmail,
     password: parsed.data.password,
   });
 
-  if (error || !data.user) {
-    return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+  if (error) {
+    const status = error.status ?? 400;
+    return NextResponse.json({ error: error.message }, { status });
   }
 
-  return NextResponse.json({ ok: true, redirectTo: parsed.data.next });
+  const requiresEmailConfirmation = !data.session;
+
+  return NextResponse.json({
+    ok: true,
+    redirectTo: parsed.data.next,
+    requiresEmailConfirmation,
+    message: requiresEmailConfirmation
+      ? "Account created. Please check your email to verify your account before signing in."
+      : "Account created and signed in successfully.",
+  });
 }

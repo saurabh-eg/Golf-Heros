@@ -121,6 +121,15 @@ export function CharityProfile({ slug }: { slug: string }) {
               <div className="mt-4 space-y-4">
                 {profileQuery.data.events.map((event) => (
                   <article key={event.id} className="rounded-2xl border border-slate-200 p-4">
+                    {event.event_image_url ? (
+                      <Image
+                        src={event.event_image_url}
+                        alt={`Event image for ${event.title}`}
+                        width={960}
+                        height={540}
+                        className="mb-3 h-48 w-full rounded-xl object-cover"
+                      />
+                    ) : null}
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <h3 className="text-lg font-semibold text-slate-900">{event.title}</h3>
                       <p className="text-xs text-slate-600">{prettyDate(event.starts_at)}</p>

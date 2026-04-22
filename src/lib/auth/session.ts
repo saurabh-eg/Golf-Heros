@@ -106,6 +106,12 @@ export async function hasActiveSubscription(userId: string): Promise<boolean> {
 
 export async function requireActiveSubscription() {
   const user = await requireUser();
+  const role = toAppRole(user.user_metadata?.role);
+
+  if (isAdmin(role)) {
+    return user;
+  }
+
   const hasAccess = await hasActiveSubscription(user.id);
 
   if (!hasAccess) {

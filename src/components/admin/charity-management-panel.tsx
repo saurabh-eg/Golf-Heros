@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createClientSupabaseClient } from "@/lib/supabase/client";
 import { AnimatedCard } from "@/components/ui/animated-surface";
 
 type CharityMedia = {
@@ -106,6 +107,53 @@ function localDateTimeToIso(localValue: string): string {
   return new Date(localValue).toISOString();
 }
 
+type SignedUploadResponse = {
+  upload?: {
+    bucket: string;
+    path: string;
+    token: string;
+  };
+  publicUrl?: string;
+  error?: string;
+};
+
+async function uploadCharityImageFile({
+  charityId,
+  file,
+  purpose,
+}: {
+  charityId: string;
+  file: File;
+  purpose: "media" | "event";
+}): Promise<string> {
+  const signResponse = await fetch(`/api/admin/charities/${charityId}/image-upload-url`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      purpose,
+      fileName: file.name,
+      fileType: file.type || "application/octet-stream",
+      fileSize: file.size,
+    }),
+  });
+
+  const signPayload = (await signResponse.json()) as SignedUploadResponse;
+  if (!signResponse.ok || !signPayload.upload || !signPayload.publicUrl) {
+    throw new Error(signPayload.error ?? "Unable to prepare image upload.");
+  }
+
+  const supabase = createClientSupabaseClient();
+  const { error: uploadError } = await supabase.storage
+    .from(signPayload.upload.bucket)
+    .uploadToSignedUrl(signPayload.upload.path, signPayload.upload.token, file);
+
+  if (uploadError) {
+    throw new Error(uploadError.message);
+  }
+
+  return signPayload.publicUrl;
+}
+
 async function getAdminCharities(): Promise<{ charities: Charity[]; error?: string }> {
   const response = await fetch("/api/admin/charities");
   const payload = (await response.json()) as { charities: Charity[]; error?: string };
@@ -122,8 +170,10 @@ export function CharityManagementPanel() {
   const [contentCharityId, setContentCharityId] = useState<string | null>(null);
   const [mediaFormState, setMediaFormState] = useState<MediaFormState>(emptyMediaForm);
   const [editingMediaId, setEditingMediaId] = useState<string | null>(null);
+  const [selectedMediaFile, setSelectedMediaFile] = useState<File | null>(null);
   const [eventFormState, setEventFormState] = useState<EventFormState>(emptyEventForm);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [selectedEventImageFile, setSelectedEventImageFile] = useState<File | null>(null);
 
   const charitiesQuery = useQuery({ queryKey: ["admin-charities"], queryFn: getAdminCharities });
 
@@ -189,10 +239,27 @@ export function CharityManagementPanel() {
   const createMediaMutation = useMutation({
     mutationFn: async () => {
       if (!contentCharityId) return;
+      const uploadedMediaUrl =
+        selectedMediaFile !== null
+          ? await uploadCharityImageFile({
+              charityId: contentCharityId,
+              file: selectedMediaFile,
+              purpose: "media",
+            })
+          : null;
+
+      const mediaUrl = uploadedMediaUrl ?? mediaFormState.mediaUrl.trim();
+      if (!mediaUrl) {
+        throw new Error("Provide a media URL or upload an image file.");
+      }
+
       const response = await fetch(`/api/admin/charities/${contentCharityId}/media`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mediaFormState),
+        body: JSON.stringify({
+          ...mediaFormState,
+          mediaUrl,
+        }),
       });
       const payload = (await response.json()) as { error?: string };
       if (!response.ok) {
@@ -201,6 +268,7 @@ export function CharityManagementPanel() {
     },
     onSuccess: async () => {
       setMediaFormState(emptyMediaForm);
+      setSelectedMediaFile(null);
       await queryClient.invalidateQueries({ queryKey: ["admin-charities"] });
     },
   });
@@ -208,10 +276,27 @@ export function CharityManagementPanel() {
   const updateMediaMutation = useMutation({
     mutationFn: async () => {
       if (!contentCharityId || !editingMediaId) return;
+      const uploadedMediaUrl =
+        selectedMediaFile !== null
+          ? await uploadCharityImageFile({
+              charityId: contentCharityId,
+              file: selectedMediaFile,
+              purpose: "media",
+            })
+          : null;
+
+      const mediaUrl = uploadedMediaUrl ?? mediaFormState.mediaUrl.trim();
+      if (!mediaUrl) {
+        throw new Error("Provide a media URL or upload an image file.");
+      }
+
       const response = await fetch(`/api/admin/charities/${contentCharityId}/media/${editingMediaId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mediaFormState),
+        body: JSON.stringify({
+          ...mediaFormState,
+          mediaUrl,
+        }),
       });
       const payload = (await response.json()) as { error?: string };
       if (!response.ok) {
@@ -221,6 +306,7 @@ export function CharityManagementPanel() {
     onSuccess: async () => {
       setEditingMediaId(null);
       setMediaFormState(emptyMediaForm);
+      setSelectedMediaFile(null);
       await queryClient.invalidateQueries({ queryKey: ["admin-charities"] });
     },
   });
@@ -244,11 +330,21 @@ export function CharityManagementPanel() {
   const createEventMutation = useMutation({
     mutationFn: async () => {
       if (!contentCharityId) return;
+      const uploadedEventImageUrl =
+        selectedEventImageFile !== null
+          ? await uploadCharityImageFile({
+              charityId: contentCharityId,
+              file: selectedEventImageFile,
+              purpose: "event",
+            })
+          : null;
+
       const response = await fetch(`/api/admin/charities/${contentCharityId}/events`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...eventFormState,
+          eventImageUrl: uploadedEventImageUrl ?? eventFormState.eventImageUrl,
           startsAt: localDateTimeToIso(eventFormState.startsAt),
           endsAt: eventFormState.endsAt ? localDateTimeToIso(eventFormState.endsAt) : "",
         }),
@@ -260,6 +356,7 @@ export function CharityManagementPanel() {
     },
     onSuccess: async () => {
       setEventFormState(emptyEventForm);
+      setSelectedEventImageFile(null);
       await queryClient.invalidateQueries({ queryKey: ["admin-charities"] });
     },
   });
@@ -267,11 +364,21 @@ export function CharityManagementPanel() {
   const updateEventMutation = useMutation({
     mutationFn: async () => {
       if (!contentCharityId || !editingEventId) return;
+      const uploadedEventImageUrl =
+        selectedEventImageFile !== null
+          ? await uploadCharityImageFile({
+              charityId: contentCharityId,
+              file: selectedEventImageFile,
+              purpose: "event",
+            })
+          : null;
+
       const response = await fetch(`/api/admin/charities/${contentCharityId}/events/${editingEventId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...eventFormState,
+          eventImageUrl: uploadedEventImageUrl ?? eventFormState.eventImageUrl,
           startsAt: localDateTimeToIso(eventFormState.startsAt),
           endsAt: eventFormState.endsAt ? localDateTimeToIso(eventFormState.endsAt) : "",
         }),
@@ -284,6 +391,7 @@ export function CharityManagementPanel() {
     onSuccess: async () => {
       setEditingEventId(null);
       setEventFormState(emptyEventForm);
+      setSelectedEventImageFile(null);
       await queryClient.invalidateQueries({ queryKey: ["admin-charities"] });
     },
   });
@@ -448,8 +556,10 @@ export function CharityManagementPanel() {
                   setContentCharityId(charity.id);
                   setEditingMediaId(null);
                   setMediaFormState(emptyMediaForm);
+                  setSelectedMediaFile(null);
                   setEditingEventId(null);
                   setEventFormState(emptyEventForm);
+                  setSelectedEventImageFile(null);
                 }}
                 className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700"
               >
@@ -487,8 +597,14 @@ export function CharityManagementPanel() {
                     onChange={(event) => setMediaFormState((current) => ({ ...current, mediaUrl: event.target.value }))}
                     className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
                     placeholder="Media URL"
-                    required
                   />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => setSelectedMediaFile(event.target.files?.[0] ?? null)}
+                    className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+                  />
+                  {selectedMediaFile ? <p className="text-xs text-slate-600">Selected file: {selectedMediaFile.name}</p> : null}
                   <input
                     value={mediaFormState.altText}
                     onChange={(event) => setMediaFormState((current) => ({ ...current, altText: event.target.value }))}
@@ -543,6 +659,7 @@ export function CharityManagementPanel() {
                         onClick={() => {
                           setEditingMediaId(null);
                           setMediaFormState(emptyMediaForm);
+                          setSelectedMediaFile(null);
                         }}
                         className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700"
                       >
@@ -574,6 +691,7 @@ export function CharityManagementPanel() {
                             type="button"
                             onClick={() => {
                               setEditingMediaId(media.id);
+                              setSelectedMediaFile(null);
                               setMediaFormState({
                                 mediaUrl: media.media_url,
                                 altText: media.alt_text,
@@ -670,6 +788,15 @@ export function CharityManagementPanel() {
                     className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
                     placeholder="Event image URL"
                   />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => setSelectedEventImageFile(event.target.files?.[0] ?? null)}
+                    className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+                  />
+                  {selectedEventImageFile ? (
+                    <p className="text-xs text-slate-600">Selected event image: {selectedEventImageFile.name}</p>
+                  ) : null}
                   <label className="inline-flex items-center gap-2 text-xs text-slate-700">
                     <input
                       type="checkbox"
@@ -701,6 +828,7 @@ export function CharityManagementPanel() {
                         onClick={() => {
                           setEditingEventId(null);
                           setEventFormState(emptyEventForm);
+                          setSelectedEventImageFile(null);
                         }}
                         className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700"
                       >
@@ -728,6 +856,7 @@ export function CharityManagementPanel() {
                           type="button"
                           onClick={() => {
                             setEditingEventId(charityEvent.id);
+                            setSelectedEventImageFile(null);
                             setEventFormState({
                               title: charityEvent.title,
                               description: charityEvent.description,

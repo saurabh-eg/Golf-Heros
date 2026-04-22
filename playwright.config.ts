@@ -2,10 +2,10 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: process.env.CI ? [["html", { open: "never" }], ["github"]] : [["list"]],
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
@@ -23,7 +23,11 @@ export default defineConfig({
     ? undefined
     : {
         command: "npm run dev",
-          url: "http://localhost:3000",
+        url: "http://localhost:3000",
+        env: {
+          ...process.env,
+          NODE_ENV: "development",
+        },
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
       },

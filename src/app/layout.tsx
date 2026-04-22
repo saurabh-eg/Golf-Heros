@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { Fraunces, Space_Grotesk } from "next/font/google";
 import { MainNav } from "@/components/layout/main-nav";
+import { assertRequiredProductionEnv } from "@/lib/config/env";
 import { AppProviders } from "@/providers/app-providers";
 import "./globals.css";
+
+assertRequiredProductionEnv();
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",

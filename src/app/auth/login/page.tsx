@@ -7,6 +7,7 @@ import { AnimatedCard, AnimatedChip, AnimatedSection } from "@/components/ui/ani
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [nextPath] = useState(() => {
     if (typeof window === "undefined") return "/dashboard";
     const next = new URLSearchParams(window.location.search).get("next");
@@ -61,12 +62,55 @@ export default function LoginPage() {
     window.location.href = result.redirectTo ?? nextPath;
   }
 
+  async function onPasswordSignup() {
+    if (password.length < 8) {
+      setStatus("error");
+      setMessage("Password must be at least 8 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setStatus("error");
+      setMessage("Passwords do not match.");
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("");
+
+    const response = await fetch("/api/auth/password-signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, next: nextPath }),
+    });
+
+    const result = (await response.json()) as {
+      message?: string;
+      error?: string;
+      redirectTo?: string;
+      requiresEmailConfirmation?: boolean;
+    };
+
+    if (!response.ok) {
+      setStatus("error");
+      setMessage(result.error ?? "Unable to create account.");
+      return;
+    }
+
+    setStatus("success");
+    setMessage(result.message ?? "Account created successfully.");
+
+    if (!result.requiresEmailConfirmation) {
+      window.location.href = result.redirectTo ?? nextPath;
+    }
+  }
+
   return (
     <AnimatedSection className="mx-auto w-full max-w-lg px-4 py-16 sm:px-6">
       <div className="space-y-4">
         <AnimatedChip className="bg-white/85 text-slate-600">Secure access</AnimatedChip>
         <h1 className="font-display text-5xl text-slate-950">Sign in</h1>
-        <p className="max-w-md text-sm leading-relaxed text-slate-600">Use your email to receive a secure magic link and jump straight into your workspace.</p>
+        <p className="max-w-md text-sm leading-relaxed text-slate-600">Use a magic link or a password. New users can also create an account with email and password.</p>
       </div>
 
       <AnimatedCard className="mt-8 p-6 sm:p-7">
@@ -95,7 +139,7 @@ export default function LoginPage() {
           </motion.button>
 
           <label className="block pt-1 text-sm font-medium text-slate-700" htmlFor="password">
-            Admin password
+            Password
           </label>
           <input
             id="password"
@@ -103,7 +147,19 @@ export default function LoginPage() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none ring-slate-300 placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
-            placeholder="Enter admin password"
+            placeholder="Enter your password"
+          />
+
+          <label className="block pt-1 text-sm font-medium text-slate-700" htmlFor="confirm-password">
+            Confirm password (for registration)
+          </label>
+          <input
+            id="confirm-password"
+            type="password"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none ring-slate-300 placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-200"
+            placeholder="Re-enter your password"
           />
 
           <motion.button
@@ -116,7 +172,20 @@ export default function LoginPage() {
             whileTap={{ y: 0 }}
             className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-50 disabled:opacity-70"
           >
-            {status === "loading" ? "Signing in..." : "Sign in with password (admin)"}
+            {status === "loading" ? "Signing in..." : "Sign in with password"}
+          </motion.button>
+
+          <motion.button
+            type="button"
+            onClick={() => {
+              void onPasswordSignup();
+            }}
+            disabled={status === "loading" || password.length < 8 || confirmPassword.length < 8}
+            whileHover={{ y: -2 }}
+            whileTap={{ y: 0 }}
+            className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-70"
+          >
+            {status === "loading" ? "Creating account..." : "Create account with password"}
           </motion.button>
 
           {message ? (

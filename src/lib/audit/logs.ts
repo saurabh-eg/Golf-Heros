@@ -23,6 +23,6 @@ export async function writeAuditLog(input: AuditLogInput): Promise<void> {
   });
 
   if (error) {
-    throw new Error(error.message);
+    console.warn("Audit log write failed:", error.message);
   }
 }

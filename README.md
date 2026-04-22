@@ -78,7 +78,16 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 npm run lint
 npm run test
 npm run test:e2e
+npm run check:production
 ```
+
+- `npm run check:production` runs lint + unit tests + production build with `NODE_ENV=production`.
+
+## Health Endpoint
+
+- `GET /api/health` returns dependency-aware health status.
+- Returns `200` with `status: ok` when dependencies are healthy.
+- Returns `503` with `status: degraded` when required production env or Supabase checks fail.
 
 ## CI and Release Verification
 
@@ -91,3 +100,9 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 ## Deploy on Vercel
 
 Set the same environment values from `.env.example` in Vercel Project Settings, including `CRON_SECRET` and `RESEND_API_KEY`, before enabling production traffic.
+
+### Production Env Notes
+
+- Do not set `NODE_ENV` manually in environment files or Vercel variables.
+- Vercel and Next.js set `NODE_ENV` automatically per runtime.
+- Startup now enforces required production secrets and fails fast if mandatory values are missing.
