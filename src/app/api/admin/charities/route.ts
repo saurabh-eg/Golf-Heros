@@ -60,15 +60,18 @@ export async function GET() {
     return NextResponse.json({ error: eventsResult.error.message }, { status: 500 });
   }
 
-  const mediaByCharity = new Map<string, Array<(typeof mediaResult.data)[number]>>();
-  for (const media of mediaResult.data ?? []) {
+  type MediaRow = { charity_id: string; id: string; media_url: string; alt_text: string; caption: string | null; sort_order: number; is_active: boolean };
+  type EventRow = { charity_id: string; id: string; title: string; description: string; event_image_url: string | null; location: string | null; event_url: string | null; starts_at: string; ends_at: string | null; is_published: boolean };
+
+  const mediaByCharity = new Map<string, MediaRow[]>();
+  for (const media of (mediaResult.data ?? []) as MediaRow[]) {
     const existing = mediaByCharity.get(media.charity_id) ?? [];
     existing.push(media);
     mediaByCharity.set(media.charity_id, existing);
   }
 
-  const eventsByCharity = new Map<string, Array<(typeof eventsResult.data)[number]>>();
-  for (const event of eventsResult.data ?? []) {
+  const eventsByCharity = new Map<string, EventRow[]>();
+  for (const event of (eventsResult.data ?? []) as EventRow[]) {
     const existing = eventsByCharity.get(event.charity_id) ?? [];
     existing.push(event);
     eventsByCharity.set(event.charity_id, existing);

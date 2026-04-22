@@ -11,9 +11,9 @@ type AnimatedSurfaceProps = {
 const riseIn = {
   initial: { opacity: 1, y: 0 },
   whileInView: { opacity: 1, y: 0 },
-  transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } as const,
   viewport: { once: true, amount: 0.25 },
-};
+} as const;
 
 export function AnimatedSection({ children, className }: AnimatedSurfaceProps) {
   return (
@@ -35,7 +35,7 @@ export function AnimatedCard({ children, className }: AnimatedSurfaceProps) {
       initial={{ opacity: 1, y: 0 }}
       whileInView={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] } as const}
       viewport={{ once: true, amount: 0.2 }}
       className={twMerge(
         "group rounded-[1.75rem] border border-slate-200/80 bg-white/78 p-6 shadow-[0_18px_50px_-28px_rgba(15,23,42,0.38)] backdrop-blur-xl transition-colors duration-300 hover:border-slate-300 hover:shadow-[0_24px_70px_-36px_rgba(15,23,42,0.48)]",
