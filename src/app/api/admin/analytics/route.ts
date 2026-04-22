@@ -44,6 +44,7 @@ export async function GET() {
 
   const [
     usersCountResult,
+    subscriberUsersCountResult,
     activeSubsCountResult,
     drawsCountResult,
     winnersCountResult,
@@ -54,6 +55,7 @@ export async function GET() {
     newSubscriptionsResult,
   ] = await Promise.all([
     supabase.from("users").select("id", { count: "exact", head: true }),
+    supabase.from("users").select("id", { count: "exact", head: true }).eq("role", "subscriber"),
     supabase
       .from("subscriptions")
       .select("id", { count: "exact", head: true })
@@ -73,6 +75,7 @@ export async function GET() {
 
   const countErrors = [
     usersCountResult.error,
+    subscriberUsersCountResult.error,
     activeSubsCountResult.error,
     drawsCountResult.error,
     winnersCountResult.error,
@@ -155,6 +158,7 @@ export async function GET() {
 
   const totals = {
     users: usersCountResult.count ?? 0,
+    subscriber_users: subscriberUsersCountResult.count ?? 0,
     active_subscribers: activeSubsCountResult.count ?? 0,
     published_draws: drawsCountResult.count ?? 0,
     winners: winnersCountResult.count ?? 0,

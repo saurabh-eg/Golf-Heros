@@ -7,6 +7,7 @@ import { AnimatedCard } from "@/components/ui/animated-surface";
 type AnalyticsResponse = {
   totals: {
     users: number;
+    subscriber_users: number;
     active_subscribers: number;
     published_draws: number;
     winners: number;
@@ -82,7 +83,11 @@ export function AdminAnalyticsPanel() {
               <p className="mt-1 text-2xl font-semibold text-slate-900">{analyticsQuery.data.totals.users}</p>
             </article>
             <article className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Active subscribers</p>
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Subscriber users</p>
+              <p className="mt-1 text-2xl font-semibold text-slate-900">{analyticsQuery.data.totals.subscriber_users}</p>
+            </article>
+            <article className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Active subscriptions</p>
               <p className="mt-1 text-2xl font-semibold text-slate-900">{analyticsQuery.data.totals.active_subscribers}</p>
             </article>
             <article className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 transition hover:border-slate-300 hover:bg-white">
