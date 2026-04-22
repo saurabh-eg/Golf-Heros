@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser } from "@/lib/auth/session";
+import { requireAdmin } from "@/lib/auth/session";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const updateSchema = z.object({
@@ -13,24 +13,12 @@ const updateSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-function isAdminRole(value: unknown): boolean {
-  return value === "admin";
-}
-
 type Context = {
   params: Promise<{ charityId: string }>;
 };
 
 export async function PATCH(request: Request, context: Context) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  }
-
-  const role = user.app_metadata?.role ?? user.user_metadata?.role;
-  if (!isAdminRole(role)) {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
-  }
+  await requireAdmin();
 
   const payload = await request.json().catch(() => null);
   const parsed = updateSchema.safeParse(payload);
@@ -66,15 +54,7 @@ export async function PATCH(request: Request, context: Context) {
 }
 
 export async function DELETE(_request: Request, context: Context) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  }
-
-  const role = user.app_metadata?.role ?? user.user_metadata?.role;
-  if (!isAdminRole(role)) {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
-  }
+  await requireAdmin();
 
   const { charityId } = await context.params;
   const supabase = createSupabaseAdminClient();

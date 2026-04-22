@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser } from "@/lib/auth/session";
+import { requireAdmin } from "@/lib/auth/session";
 import { SCORE_RULES } from "@/lib/constants/business-rules";
 import { writeAuditLog } from "@/lib/audit/logs";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -14,24 +14,12 @@ const updateSchema = z
     message: "At least one field is required.",
   });
 
-function isAdminRole(value: unknown): boolean {
-  return value === "admin";
-}
-
 type Context = {
   params: Promise<{ scoreId: string }>;
 };
 
 export async function PATCH(request: NextRequest, context: Context) {
-  const actor = await getCurrentUser();
-  if (!actor) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  }
-
-  const role = actor.app_metadata?.role ?? actor.user_metadata?.role;
-  if (!isAdminRole(role)) {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
-  }
+  const actor = await requireAdmin();
 
   const payload = await request.json().catch(() => null);
   const parsed = updateSchema.safeParse(payload);
@@ -107,15 +95,7 @@ export async function PATCH(request: NextRequest, context: Context) {
 }
 
 export async function DELETE(_request: NextRequest, context: Context) {
-  const actor = await getCurrentUser();
-  if (!actor) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  }
-
-  const role = actor.app_metadata?.role ?? actor.user_metadata?.role;
-  if (!isAdminRole(role)) {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
-  }
+  const actor = await requireAdmin();
 
   const { scoreId } = await context.params;
   const supabase = createSupabaseAdminClient();

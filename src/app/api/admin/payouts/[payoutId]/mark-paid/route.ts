@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser } from "@/lib/auth/session";
+import { requireAdmin } from "@/lib/auth/session";
 import { writeAuditLog } from "@/lib/audit/logs";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -8,19 +8,11 @@ const bodySchema = z.object({
   paymentReference: z.string().min(2).max(200),
 });
 
-function isAdminRole(value: unknown): boolean {
-  return value === "admin";
-}
-
 export async function PATCH(
   request: Request,
   context: { params: Promise<{ payoutId: string }> },
 ) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  if (!isAdminRole(user.app_metadata?.role ?? user.user_metadata?.role)) {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
-  }
+  const user = await requireAdmin();
 
   const { payoutId } = await context.params;
   const payload = await request.json().catch(() => null);

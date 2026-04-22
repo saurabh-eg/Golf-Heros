@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser } from "@/lib/auth/session";
+import { requireAdmin } from "@/lib/auth/session";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const eventSchema = z.object({
@@ -18,29 +18,8 @@ type Context = {
   params: Promise<{ charityId: string }>;
 };
 
-function isAdminRole(value: unknown): boolean {
-  return value === "admin";
-}
-
-async function requireAdmin() {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  }
-
-  const role = user.app_metadata?.role ?? user.user_metadata?.role;
-  if (!isAdminRole(role)) {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
-  }
-
-  return null;
-}
-
 export async function GET(_request: Request, context: Context) {
-  const authError = await requireAdmin();
-  if (authError) {
-    return authError;
-  }
+  await requireAdmin();
 
   const { charityId } = await context.params;
   const supabase = createSupabaseAdminClient();
@@ -58,10 +37,7 @@ export async function GET(_request: Request, context: Context) {
 }
 
 export async function POST(request: Request, context: Context) {
-  const authError = await requireAdmin();
-  if (authError) {
-    return authError;
-  }
+  await requireAdmin();
 
   const payload = await request.json().catch(() => null);
   const parsed = eventSchema.safeParse(payload);

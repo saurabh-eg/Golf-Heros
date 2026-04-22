@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser } from "@/lib/auth/session";
+import { requireAdmin } from "@/lib/auth/session";
 import { buildUserEntriesFromScores, computeTierCounts, countMatches, generateDrawNumbers, type DrawMode } from "@/lib/domain/draw";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -10,16 +10,8 @@ const bodySchema = z.object({
   drawMonth: z.number().int().min(1).max(12).optional(),
 });
 
-function isAdminRole(value: unknown): boolean {
-  return value === "admin";
-}
-
 export async function POST(request: Request) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  if (!isAdminRole(user.app_metadata?.role ?? user.user_metadata?.role)) {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
-  }
+  const user = await requireAdmin();
 
   const payload = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(payload);

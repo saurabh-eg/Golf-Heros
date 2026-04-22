@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { getCurrentUser } from "@/lib/auth/session";
+import { requireAdmin } from "@/lib/auth/session";
 import { serverEnv } from "@/lib/config/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-
-function isAdminRole(value: unknown): boolean {
-  return value === "admin";
-}
 
 function timestampFromUnixMaybe(value: number | null | undefined): string | null {
   if (!value) return null;
@@ -36,15 +32,7 @@ type Context = {
 };
 
 export async function POST(_request: Request, context: Context) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  }
-
-  const role = user.app_metadata?.role ?? user.user_metadata?.role;
-  if (!isAdminRole(role)) {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
-  }
+  await requireAdmin();
 
   if (!serverEnv.STRIPE_SECRET_KEY) {
     return NextResponse.json({ error: "Stripe secret key is not configured." }, { status: 500 });

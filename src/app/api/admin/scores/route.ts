@@ -1,21 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth/session";
+import { requireAdmin } from "@/lib/auth/session";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-function isAdminRole(value: unknown): boolean {
-  return value === "admin";
-}
-
 export async function GET(request: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  }
-
-  const role = user.app_metadata?.role ?? user.user_metadata?.role;
-  if (!isAdminRole(role)) {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
-  }
+  await requireAdmin();
 
   const search = request.nextUrl.searchParams.get("q")?.trim().toLowerCase() ?? "";
   const supabase = createSupabaseAdminClient();

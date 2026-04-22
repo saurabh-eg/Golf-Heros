@@ -17,13 +17,15 @@ type SubscriptionRow = {
 };
 
 async function resolveUserRoleWithFallback(userId: string, roleFromMetadata: "admin" | "subscriber" | null) {
-  if (roleFromMetadata) {
-    return roleFromMetadata;
-  }
-
   const supabase = await createServerSupabaseClient();
   const { data } = await supabase.from("users").select("role").eq("id", userId).maybeSingle();
-  return toAppRole(data?.role);
+  const dbRole = toAppRole(data?.role);
+
+  if (roleFromMetadata === "admin" || dbRole === "admin") {
+    return "admin";
+  }
+
+  return roleFromMetadata ?? dbRole ?? "subscriber";
 }
 
 export async function getCurrentUser() {
@@ -40,7 +42,7 @@ export async function getCurrentUser() {
   const resolvedRole = await resolveUserRoleWithFallback(user.id, metadataRole);
 
   const userWithResolvedRole =
-    resolvedRole && resolvedRole !== metadataRole
+    resolvedRole !== metadataRole
       ? {
           ...user,
           user_metadata: {

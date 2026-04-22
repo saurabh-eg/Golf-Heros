@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser } from "@/lib/auth/session";
+import { requireAdmin } from "@/lib/auth/session";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const createSchema = z.object({
@@ -12,10 +12,6 @@ const createSchema = z.object({
   isFeatured: z.boolean().default(false),
 });
 
-function isAdminRole(value: unknown): boolean {
-  return value === "admin";
-}
-
 function isMissingOptionalTableError(error: { code?: string; message?: string } | null): boolean {
   if (!error) return false;
   if (error.code === "42P01") return true;
@@ -23,15 +19,7 @@ function isMissingOptionalTableError(error: { code?: string; message?: string } 
 }
 
 export async function GET() {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  }
-
-  const role = user.app_metadata?.role ?? user.user_metadata?.role;
-  if (!isAdminRole(role)) {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
-  }
+  await requireAdmin();
 
   const supabase = createSupabaseAdminClient();
   const { data: charities, error } = await supabase
@@ -96,15 +84,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  }
-
-  const role = user.app_metadata?.role ?? user.user_metadata?.role;
-  if (!isAdminRole(role)) {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
-  }
+  await requireAdmin();
 
   const payload = await request.json().catch(() => null);
   const parsed = createSchema.safeParse(payload);
