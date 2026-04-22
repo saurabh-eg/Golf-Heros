@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+const optionalTrimmedEmail = z.preprocess((value) => {
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}, z.string().email().optional());
+
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.url().default("http://localhost:3000"),
   NEXT_PUBLIC_SUPABASE_URL: z.string().optional(),
@@ -7,14 +13,15 @@ const publicEnvSchema = z.object({
 });
 
 const serverEnvSchema = z.object({
-  ADMIN_EMAIL: z.string().email().optional(),
+  ADMIN_EMAIL: optionalTrimmedEmail,
+  ADMIN_PASSWORD: z.string().min(8).optional(),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PRICE_MONTHLY_ID: z.string().optional(),
   STRIPE_PRICE_YEARLY_ID: z.string().optional(),
   DRAW_POOL_PER_ACTIVE_MINOR: z.coerce.number().int().positive().optional(),
   RESEND_API_KEY: z.string().optional(),
-  NOTIFICATION_FROM_EMAIL: z.string().email().optional(),
+  NOTIFICATION_FROM_EMAIL: optionalTrimmedEmail,
   NOTIFICATION_DISPATCH_SECRET: z.string().min(12).optional(),
   CRON_SECRET: z.string().min(12).optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
@@ -30,6 +37,7 @@ export const publicEnv = publicEnvSchema.parse({
 
 export const serverEnv = serverEnvSchema.parse({
   ADMIN_EMAIL: process.env.ADMIN_EMAIL,
+  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
   STRIPE_PRICE_MONTHLY_ID: process.env.STRIPE_PRICE_MONTHLY_ID,
