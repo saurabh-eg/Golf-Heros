@@ -53,6 +53,10 @@ export const serverEnv = serverEnvSchema.parse({
 });
 
 export function assertRequiredProductionEnv(): void {
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return;
+  }
+
   if (serverEnv.NODE_ENV !== "production") {
     return;
   }
