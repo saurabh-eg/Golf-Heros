@@ -43,8 +43,10 @@ export async function POST(request: Request) {
   }
 
   const stripe = new Stripe(serverEnv.STRIPE_SECRET_KEY);
-  const successUrl = `${publicEnv.NEXT_PUBLIC_APP_URL}/subscribe?checkout=success`;
-  const cancelUrl = `${publicEnv.NEXT_PUBLIC_APP_URL}/subscribe?checkout=cancel`;
+  const requestOrigin = new URL(request.url).origin;
+  const baseUrl = requestOrigin || publicEnv.NEXT_PUBLIC_APP_URL;
+  const successUrl = `${baseUrl}/subscribe?checkout=success`;
+  const cancelUrl = `${baseUrl}/subscribe?checkout=cancel`;
 
   const customer = await stripe.customers.create({
     email: user.email,
