@@ -1,8 +1,88 @@
 import { expect, test } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { User } from "@supabase/supabase-js";
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
+
+type AdminSeedDatabase = {
+  public: {
+    Tables: {
+      users: {
+        Row: {
+          id: string;
+          email: string;
+          role: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          role: string;
+          updated_at: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          role?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      profiles: {
+        Row: {
+          user_id: string;
+          full_name: string | null;
+          country_code: string | null;
+          timezone: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          full_name?: string | null;
+          country_code?: string | null;
+          timezone?: string | null;
+          updated_at: string;
+        };
+        Update: {
+          user_id?: string;
+          full_name?: string | null;
+          country_code?: string | null;
+          timezone?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      scores: {
+        Row: {
+          user_id: string;
+          score_date: string;
+          stableford_score: number;
+          created_by_admin: boolean;
+        };
+        Insert: {
+          user_id: string;
+          score_date: string;
+          stableford_score: number;
+          created_by_admin?: boolean;
+        };
+        Update: {
+          user_id?: string;
+          score_date?: string;
+          stableford_score?: number;
+          created_by_admin?: boolean;
+        };
+        Relationships: [];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
+  };
+};
+
+type AdminClient = SupabaseClient<AdminSeedDatabase>;
 
 const adminEmail = process.env.ADMIN_EMAIL;
 const adminPassword = process.env.ADMIN_PASSWORD;
@@ -21,7 +101,7 @@ const updatedScoreValue = 13;
 let setupReady = false;
 let setupReason = "";
 
-async function ensureAdminPasswordAuthReady(adminClient: any) {
+async function ensureAdminPasswordAuthReady(adminClient: AdminClient) {
   if (!adminEmail || !adminPassword) {
     setupReason = "ADMIN_EMAIL and ADMIN_PASSWORD must be set for this test.";
     return;
@@ -85,7 +165,7 @@ async function ensureAdminPasswordAuthReady(adminClient: any) {
   }
 }
 
-async function seedTargetUserAndScore(adminClient: any) {
+async function seedTargetUserAndScore(adminClient: AdminClient) {
   const { data: createdAuthUser, error: createTargetError } = await adminClient.auth.admin.createUser({
     email: targetEmail,
     password: targetPassword,
@@ -179,9 +259,9 @@ test.describe("Admin controls deep actions", () => {
       return;
     }
 
-    const adminClient = createClient(supabaseUrl, supabaseServiceRoleKey, {
+    const adminClient = createClient<AdminSeedDatabase>(supabaseUrl, supabaseServiceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
-    }) as any;
+    });
 
     await ensureAdminPasswordAuthReady(adminClient);
     if (setupReason) return;
